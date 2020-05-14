@@ -1,0 +1,216 @@
+openapi: 3.0.1
+info:
+  title: Product-Service API Description
+  description: "\n# Beschreibung\nDer Product-Service dient dem Auslesen von Produktdaten\
+    \ des Kunden aus OSPlus. Anhand der Kundensatznummer wird eine Liste geliefert,\
+    \  welche Produkte der Kunde nutzt. Es werden jeweils die Produktkategorien zurü\
+    ckgeliefert,  für die zu dem Kunden entsprechende Produkte vorhanden sind. Zusatzinformationen\
+    \ zu den  einzelnen Produkten werden nicht mitgeliefert.\n \n# Rahmenbedingungen\n\
+    Welche Rahmenbedingungen sind zu beachten, damit der Service genutzt werden kann,\
+    \ insbesondere\n  - Rechte: Welche Rechte müssen vorhanden sein/beantragt werden,\
+    \ damit der Service genutzt werden kann\n  - Verfügbarkeitszeiten: Wann ist der\
+    \ Service verfügbar?\n  - Offene Detailpunkte:\n  - Rechte: Im Zielzustand sollte\
+    \ mit der Vergabe des Rechts zur Nutzung des Service auch alle darunterliegenden\
+    \ Rechte, die erforderlich sind, angelegt werden (Service-Gedanke)\n  - Serviceparameter:\
+    \ weitergehende Regelungen wie Quotas etc. sind nicht Teil der Swagger-Dokumentation,\
+    \ sondern Parameter im API-Gateway, werden dort gepflegt und publiziert\n\n# Domä\
+    ne/Subdomäne\n  - Welcher fachlichen Domäne ist der Service zugeordnet?\n  - Die\
+    \ Information dient der Strukturierung/Ordnung der Services im API-Verzeichnis\
+    \ aus Sicht der fachlichen Architektur.\n  - Bei Composite Services über mehrere\
+    \ Domänen gibt i.d.R. eine Domäne, die führend ist (Einstiegspunkt). Der Service\
+    \ wird dieser Domäne zugeordnet.\n  - Die Ausprägungen sind die Domänen der Fachlandkarte.\
+    \ Abweichende Domänen muss das Architekturmanagement genehmigen.\n\n# IT-System(-nummer)\n\
+    \  - Welchem IT-System ist der Service zugeordnet.\n  - Der Service erbt von dem\
+    \ IT-System einige wesentliche Eigenschaften, insbesondere die Ownerschaften und\
+    \ das Schutz-Niveau, das der Service bietet.\n  - Bei Composite Services über\
+    \ mehrere Systeme gibt i.d.R. ein System, das führend ist (Einstiegspunkt). Der\
+    \ Service wird diesem System zugeordnet.\n\n# Offene Detailpunkte\n  - Welche\
+    \ Eigenschaften erbt der Service von dem System?\n  - Werden diese Eigenschaften\
+    \ beim Service im API-Verzeichnis mit publiziert (Komfort) und/oder das IT-System\
+    \ verlinkt.\n  - Wird die Systemnummer publiziert?\n\n# Schutzniveau\nSchutz-Niveau\
+    \ des IT-Systems oder geringer\n\n# Release-Notes\nBeschreibung der Release-Ä\
+    ndeurngen und/oder Link zu den in JIRA-Tickets\n\n# Status\nStatus des Service\n\
+    \n# Offene Detailpunkte\nWelche Ausprägungen bilden wir da ab? Mögliche Quellen:\
+    \ Statusausprägungen, die ApiOmat im Zuge Versionierung anbietet und/oder Packaging\
+    \ Konzepte z.B. für Python\n"
+  termsOfService: /agb
+  contact:
+    name: Nicholas Trawniczek
+    url: http://api.lbbw.de
+    email: Nicholas.Trawniczek@lbbw.de
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  version: 1.0.2
+  x-keywords: Produkt Kreditkartenlimit S&L-Limit Aval Derivat Tagesgeldkonto Absatzfinanzierung
+    GLS-Limit
+  x-logo:
+    altText: LBBW logo
+    url: https://www.lbbw.de/res/images/logos/lbbw-logo-darkblue_131586_m.svg
+externalDocs:
+  description: Diese Dokumentation basiert auf der Open Api Specification V3.
+  url: https://github.com/OAI/OpenAPI-Specification
+servers:
+- url: http://api.bp.entw.bank.lbbw.sko.de/customer/product-service/
+tags:
+- name: products
+  description: Produktdaten
+- name: product_models
+  description: |
+    <SchemaDefinition schemaRef="#/components/schemas/Product" exampleRef="#/components/examples/Product" showReadOnly={true} showWriteOnly={true} />
+  x-displayName: Das Produkt-Datenmodell
+paths:
+  /products/{customerId}:
+    get:
+      tags:
+      - products
+      summary: Abrufen der Produktnutzungsdaten eines Kunden
+      description: Liefert Produktnutzungsdaten zu einem Kunden-Datensatz zurueck
+      operationId: getProductsByCustomerId
+      parameters:
+      - name: customerId
+        in: path
+        description: KUSA
+        required: true
+        schema:
+          $ref: '#/components/schemas/CustomerId'
+      - name: service-path
+        in: header
+        description: Pfad mit Domaene und Servicename aus dem API-Verzeichnis. Wird
+          zur Bildung der links verwendet.
+        schema:
+          type: string
+          example: /customer/product-service/
+      - name: x-forwarded-proto
+        in: header
+        description: Protokoll, mit dem der urspruengliche API-Aufruf erfolgte
+        schema:
+          type: string
+          example: https
+      - name: x-forwarded-host
+        in: header
+        description: Host, an den die urspruengliche Anfrage ging. Wird zur Bildung
+          der links verwendet
+        schema:
+          type: string
+          format: url
+          example: api.lbbw.de
+
+        required: true
+      responses:
+        200:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                properties:
+                  data:
+                    $ref: "#/components/schemas/Products"
+                type: object
+        400:
+          description: Invalid ID supplied
+          content: {}
+
+components:
+  schemas:
+    Products:
+      type: object
+      required: [type]
+      description: Datenmodell der Liste mit Produkten.
+      properties:
+        attributes:
+          required:
+          - products
+          type: object
+          properties:
+            products:
+              type: array
+              items:
+                $ref: '#/components/schemas/Product'
+        id:
+          $ref: '#/components/schemas/CustomerId'
+        links:
+          type: object
+          properties:
+            self:
+              type: string
+              example: '{server_url}/customer/product-service/products/43525748'
+        type:
+          type: string
+          example: products
+          enum:
+          - products
+    Product:
+      required:
+      - variant
+      type: object
+      properties:
+        variant:
+          type: string
+          description: Bezeichnung der Variante eines Geschaeftsproduktes (s. GP)
+          example: V-LBBW-GBV
+      description: Produktdaten
+    CustomerId:
+      maxLength: 10
+      pattern: \d{1,10}
+      type: string
+      description: KUSA - LBBW Kunden-ID
+      example: "43525748"
+    ErrorResponse:
+      type: object
+      properties:
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/JsonApiError'
+    JsonApiError:
+      type: object
+      properties:
+        code:
+          type: string
+        detail:
+          type: string
+        id:
+          type: string
+        status:
+          type: string
+        title:
+          type: string
+  securitySchemes:
+    EsbAuthorization:
+      type: http
+      scheme: basic
+    appId:
+      type: apiKey
+      description: Applikationskuerzel zum FIA-User (wird zur Zuordnung des Client
+        benutzt)
+      name: x-app-id
+      in: header
+  
+  headers:
+    service-path:
+      description: Pfad mit Domäne und Servicename aus dem API-Verzeichnis. Wird zur Bildung der links verwendet.
+      schema:
+        type: string
+        example: /customer/customer-service
+    x-forwarded-proto:
+      description: Protokoll, mit dem der ursprüngliche API-Aufruf erfolgte
+      schema:
+        type: string
+        example: https
+    x-forwarded-host:
+      description: Host, an den die ursprüngliche Anfrage ging. Wird zur Bildung der links verwendet
+      schema:
+        type: string
+        format: url
+
+x-components:
+  examples:
+    data:
+      attributes:
+        products:
+          variant: V-LBBW-GBV
+      id: "43525748"
+      links:
+        self: https://api.lbbw.de/customer/product-service/products/43525748
+        

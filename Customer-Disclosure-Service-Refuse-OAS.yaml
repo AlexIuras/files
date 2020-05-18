@@ -34,14 +34,14 @@ info:
     Schutz-Niveau des IT-Systems oder geringer
 
     # Release-Notes
-    2020-05-14: V0.9.6  Datumsformat ISO yyyy-MM-dd
+    2020-05-14: V0.9.71 Datumsformat ISO yyyy-MM-dd
 
     # Status
-    Version 0.9.6: ein MockUp Service. Dieser liefert ein Objekt namens DisclosureRefuse also Offenlegung-verweigert-Daten.
+    Version 0.9.71: ein MockUp Service. Dieser liefert ein Objekt namens DisclosureRefuse also Offenlegung-verweigert-Daten.
 
     # Offene Detailpunkte
     Welche Ausprägungen bilden wir da ab? Mögliche Quellen: Statusausprägungen, die ApiOmat im Zuge Versionierung anbietet und/oder Packaging Konzepte z.B. für Python
-  version: 0.9.6
+  version: 0.9.71
   termsOfService: /agb
   contact:
     name: Nicholas Trawniczek
@@ -182,7 +182,7 @@ components:
               type: string
               description: Verweigerung erfolgt am.
               example: "2019-04-12T14:25:00.000+02:00"
-              format: datetime
+              format: date-time
             customer_type:
               type: number
               description: Kunden Art.

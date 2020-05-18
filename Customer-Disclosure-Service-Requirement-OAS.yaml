@@ -33,14 +33,14 @@ info:
     Schutz-Niveau des IT-Systems oder geringer
 
     # Release-Notes
-    2020-05-14: V0.9.71  Datumsformat ISO yyyy-MM-dd
+    2020-05-14: V0.9.72  Datumsformat ISO yyyy-MM-dd
 
     # Status
-    Version 0.9.71: ein MockUp Service. Dieser liefert ein Objekt namens DisclosureRequirement also Offenlegungspflichtkennzeichen.
+    Version 0.9.72: ein MockUp Service. Dieser liefert ein Objekt namens DisclosureRequirement also Offenlegungspflichtkennzeichen.
 
     # Offene Detailpunkte
     Welche Ausprägungen bilden wir da ab? Mögliche Quellen: Statusausprägungen, die ApiOmat im Zuge Versionierung anbietet und/oder Packaging Konzepte z.B. für Python
-  version: 0.9.71
+  version: 0.9.72
   termsOfService: /agb
   contact:
     name: Nicholas Trawniczek
@@ -81,9 +81,9 @@ x-tagGroups:
 paths:
   /requirement/{customerId}:
     parameters:
-      - $ref: '#/components/parameters/servicePathParam'
-      - $ref: '#/components/parameters/x-forwarded-protoParm'
-      - $ref: '#/components/parameters/x-forwarded-hostParam'
+      - $ref: '#/components/parameters/service-path'
+      - $ref: '#/components/parameters/x-forwarded-proto'
+      - $ref: '#/components/parameters/x-forwarded-host'
     put:
       operationId: updateDisclosureRequirementByCustomerId
       summary: Schreiben der Offenlegungspflichtkennzeichen-Daten
@@ -228,21 +228,21 @@ components:
           type: string
   
   parameters:
-    servicePathParam:
+    service-path:
       name: service-path
       in: header
       description: Pfad mit Domäne und Servicename aus dem API-Verzeichnis. Wird zur Bildung der links verwendet.
       schema:
         type: string
         example: /customer/disclosure-service
-    x-forwarded-protoParm:
-      name:  x-forwarded-proto
+    x-forwarded-proto:
+      name: x-forwarded-proto
       in: header
       description: Protokoll, mit dem der ursprüngliche API-Aufruf erfolgte
       schema:
         type: string
         example: https
-    x-forwarded-hostParam:
+    x-forwarded-host:
       name: x-forwarded-host
       in: header
       description: Host, an den die ursprüngliche Anfrage ging. Wird zur Bildung der links verwendet

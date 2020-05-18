@@ -1,0 +1,261 @@
+openapi: 3.0.1
+info:
+  title: Disclosure-requirement-Service API Description
+  description: |2
+
+    # Beschreibung
+    Das Prüfergebnis aus der Offenlegungspflicht ist nach OSP  zu schreiben. Es sollen die Ergebnisse der Prüfung, 
+    ob der Kunde offenlegungspflichtig ist  nach OSP-§18 Anwendung geschrieben werden. 
+    Entweder, der Kunde ist offenlegungspflichtig oder es wurden Ausnahmetatbestände ermittelt.
+    # Rahmenbedingungen
+    Welche Rahmenbedingungen sind zu beachten, damit der Service genutzt werden kann, insbesondere
+      - Rechte: Der aufrufende User muss in ESBConfig die Berechtigung zum Aufruf von Service 'DynsBA'/Domäne OSP besitzen. 
+        Zur Abfrage von Daten zu Mitarbeitern (Organkennzeichen gesetzt) benötigt der zugeordnete SUSer das Privileg 'MITARBEITER'. 
+        Falls das Zugriffsschutz-Kennzeichen einer gesuchten Personen gesetzt ist
+        (ZUGRIFFSSCHUTZ_KZ = 'J' ), benötigt der Anwender das Privileg 'ZUGRIFF-PERS'.
+      - Verfügbarkeitszeiten: Wann ist der Service verfügbar?
+      - Offene Detailpunkte:
+      - Rechte: Im Zielzustand sollte mit der Vergabe des Rechts zur Nutzung des Service auch alle darunterliegenden Rechte, die erforderlich sind, angelegt werden (Service-Gedanke)
+      - Serviceparameter: weitergehende Regelungen wie Quotas etc. sind nicht Teil der Swagger-Dokumentation, sondern Parameter im API-Gateway, werden dort gepflegt und publiziert
+
+    # Domäne/Subdomäne
+      - der Service ist der fachlichen Domäne 'Customer' zugeordnet.
+     
+    # IT-System(-nummer)
+      -  IT-System: nicht bekannt
+     
+    # Offene Detailpunkte
+      - Welche Eigenschaften erbt der Service von dem System?
+      - Werden diese Eigenschaften beim Service im API-Verzeichnis mit publiziert (Komfort) und/oder das IT-System verlinkt.
+      - Wird die Systemnummer publiziert?
+
+    # Schutzniveau
+    Schutz-Niveau des IT-Systems oder geringer
+
+    # Release-Notes
+    2020-05-14: V0.9.7  Datumsformat ISO yyyy-MM-dd
+
+    # Status
+    Version 0.9.7: ein MockUp Service. Dieser liefert ein Objekt namens DisclosureRequirement also Offenlegungspflichtkennzeichen.
+
+    # Offene Detailpunkte
+    Welche Ausprägungen bilden wir da ab? Mögliche Quellen: Statusausprägungen, die ApiOmat im Zuge Versionierung anbietet und/oder Packaging Konzepte z.B. für Python
+  version: 0.9.7
+  termsOfService: /agb
+  contact:
+    name: Nicholas Trawniczek
+    url: http://api.lbbw.de
+    email: Nicholas.Trawniczek@lbbw.de
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  x-keywords: Prüfungsergebnis, Offenlegungspflicht, Ausnahmetatbestand
+  x-logo:
+    altText: LBBW logo
+    url: https://www.lbbw.de/res/images/logos/lbbw-logo-darkblue_131586_m.svg
+externalDocs:
+  description: Diese Dokumentation basiert auf der Open Api Specification V3.
+  url: https://github.com/OAI/OpenAPI-Specification
+servers:
+- url: https://api.bp.entw.bank.lbbw.sko.de/customer/disclosure-service/
+  description: API-Verzeichnis
+- url: https://esb.bp.entw.bank.lbbw.sko.de/customer/disclosure-service/
+  description: ESB-Service Integrationsumgebung
+
+tags:
+  - name: update disclosure requirement
+    description: Schreibe Offenlegungspflichtkennzeichen zum Kunden nach OSPlus
+  - name: requirement_model
+    x-displayName: Das Offenlegungspflichtkennzeichen-Datenmodell
+    description: |
+      <SchemaDefinition schemaRef="#/components/schemas/Requirement" showReadOnly={true} showWriteOnly={true} />
+
+x-tagGroups:
+  - name: Requirement
+    tags:
+      - update disclosure requirement
+  - name: Models
+    tags:
+      - requirement_model
+
+paths:
+  /requirement/{customerId}:
+    parameters:
+      - $ref: '#/components/parameters/servicePathParam'
+      - $ref: '#/components/parameters/x-forwarded-protoParm'
+      - $ref: '#/components/parameters/x-forwarded-hostParam'
+    put:
+      operationId: updateDisclosureRequirementByCustomerId
+      summary: Schreiben der Offenlegungspflichtkennzeichen-Daten
+      description: Aktualisiert und liefert Offenlegungspflichtkennzeichen-Daten zu einem Kunden-Datensatz zurück
+      tags:
+      - update disclosure requirement
+      parameters:
+      - name: customerId
+        in: path
+        description: KUSA
+        required: true
+        schema:
+          $ref: '#/components/schemas/CustomerId'
+
+      requestBody:
+        description: Disclosure-requirement
+        required: true
+        content:
+          'application/vnd.api+json':
+            schema:
+              properties:
+                data:
+                  $ref: '#/components/schemas/RequirementRequest'
+      responses:
+        200:
+          description: Disclosure requirement successfully updated.
+          content:
+            application/vnd.api+json:
+              schema:
+                $ref: '#/components/schemas/RequirementResponse'
+        400:
+          description: Invalid Request
+          content: 
+            application/vnd.api+json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+security:
+  - EsbAuthorization: []
+    appId: []
+
+components:
+  schemas:
+    RequirementRequest:
+      type: object
+      properties: 
+        data:
+          $ref: '#/components/schemas/Requirement'
+      example:
+        data:
+          disclosure_requirement: "true"
+          exception_reason: Ausnahmetatbestand Grund
+          valid_from: '2020-02-02T14:25:00.000+02:00'
+          date_of_expiry: '2020-02-02T14:25:00.000+02:00'
+
+    RequirementResponse:
+      type: object
+      properties: 
+        data:
+          $ref: '#/components/schemas/Requirement'
+        links:
+          type: object
+          properties:
+            self:
+              type: string
+              description: Link zu dieser Ressourcenabfrage
+        
+      example:
+        data:
+          - type: requirements
+            id: '43525748'
+            attributes:
+                disclosure_requirement: "true"
+                exception_reason: "Ausnahmetatbestand Grund"
+                valid_from: '2020-02-02T14:25:00.000+02:00'
+                date_of_expiry: '2020-02-02T14:25:00.000+02:00'
+        links:
+          self: 'http://api.lbbw.de/customer/disclosure-service/requirement/43525748'
+    Requirement:
+      type: object
+      description: Datenmodell Offenlegungspflichtkennzeichen
+      properties:
+        id:
+          type: string
+          description: "eindeutiger Schlüssel der Offenlegungspflichtkennzeichen-Daten"
+          example: "43525748"
+        type:
+          type: string
+          description: Objekt Type
+          enum: [requirements]
+          example: requirements
+        attributes:
+          type: object
+          properties:
+            disclosure_requirement:
+              type: "string"
+              description: "Offenlegungspflicht Aktiv-KZ Ja-Aktiv/Nein-Inaktiv."
+              example: "J"
+              enum: ['J','N'] 
+            exception_reason:
+              type: "string"
+              description: "Ausnahmetatbestand Grund"
+              example: "Ausnahmetatbestand_Grund"
+            valid_from:
+              type: "string"
+              description: Datum gültig ab.
+              example: "2019-04-12T14:25:00.000+02:00"
+              format: datetime
+            date_of_expiry:
+              type: "string"
+              description: Datum gültig ab.
+              example: "2019-04-12T14:25:00.000+02:00"
+              format: datetime
+    
+    CustomerId:
+      type: string
+      maxLength: 10
+      pattern: "\\d{1,10}"
+      example: "43525748"
+      
+      ## Erweiterung ErrorObject aus json:api
+    ErrorResponse:
+      type: object
+      properties:
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/JsonApiError' 
+            
+    JsonApiError:
+      type: object
+      properties:
+        id:
+          type: string
+        status:
+          type: string
+        code:
+          type: string
+        title:
+          type: string
+        detail:
+          type: string
+  
+  parameters:
+    servicePathParam:
+      name: service-path
+      in: header
+      description: Pfad mit Domäne und Servicename aus dem API-Verzeichnis. Wird zur Bildung der links verwendet.
+      schema:
+        type: string
+        example: /customer/disclosure-service
+    x-forwarded-protoParm:
+      name:  x-forwarded-proto
+      in: header
+      description: Protokoll, mit dem der ursprüngliche API-Aufruf erfolgte
+      schema:
+        type: string
+        example: https
+    x-forwarded-hostParam:
+      name: x-forwarded-host
+      in: header
+      description: Host, an den die ursprüngliche Anfrage ging. Wird zur Bildung der links verwendet
+      schema:
+        type: string
+        format: url
+  securitySchemes:
+    EsbAuthorization:
+      type: http
+      scheme: basic
+    
+    appId:
+      type: apiKey
+      in: header
+      name: x-app-id
+      description: Applikationskürzel zum FIA-User (wird zur Zuordnung des Client benutzt)

@@ -33,14 +33,14 @@ info:
     Schutz-Niveau des IT-Systems oder geringer
 
     # Release-Notes
-    2020-05-14: V0.9.7  Datumsformat ISO yyyy-MM-dd
+    2020-05-14: V0.9.71  Datumsformat ISO yyyy-MM-dd
 
     # Status
-    Version 0.9.7: ein MockUp Service. Dieser liefert ein Objekt namens DisclosureRequirement also Offenlegungspflichtkennzeichen.
+    Version 0.9.71: ein MockUp Service. Dieser liefert ein Objekt namens DisclosureRequirement also Offenlegungspflichtkennzeichen.
 
     # Offene Detailpunkte
     Welche Ausprägungen bilden wir da ab? Mögliche Quellen: Statusausprägungen, die ApiOmat im Zuge Versionierung anbietet und/oder Packaging Konzepte z.B. für Python
-  version: 0.9.7
+  version: 0.9.71
   termsOfService: /agb
   contact:
     name: Nicholas Trawniczek
@@ -191,12 +191,12 @@ components:
               type: "string"
               description: Datum gültig ab.
               example: "2019-04-12T14:25:00.000+02:00"
-              format: datetime
+              format: date-time
             date_of_expiry:
               type: "string"
               description: Datum gültig ab.
               example: "2019-04-12T14:25:00.000+02:00"
-              format: datetime
+              format: date-time
     
     CustomerId:
       type: string

@@ -4,40 +4,25 @@ info:
   description: >
 
     # Beschreibung Operation 1:
-
     Das Prüfergebnis aus der Offenlegungspflicht ist nach OSP  zu schreiben. Es
-    sollen die Ergebnisse der Prüfung, 
-
-    ob der Kunde offenlegungspflichtig ist  nach OSP-§18 Anwendung geschrieben
-    werden. 
-
-    Entweder, der Kunde ist offenlegungspflichtig oder es wurden
+    sollen die Ergebnisse der Prüfung, ob der Kunde offenlegungspflichtig ist  nach OSP-§18 Anwendung geschrieben
+    werden. Entweder, der Kunde ist offenlegungspflichtig oder es wurden
     Ausnahmetatbestände ermittelt.
 
     # Beschreibung Operation 2:
-
     Es soll nach OSP geschrieben werden, wann die Offenlegung erfolgt ist.
-
     Wenn der Kunde die erforderlichen Unterlagen eingereicht hat, 
-
     erfasst der Berater in der GUI das Datum der Auswertung der Unterlagen und
     die Art der eingereichten Dokumente.
-
     Diese Informationen sollen nach OSP geschrieben werden.
 
     # Beschreibung Operation 3:
-
     Das Prüfergebnis aus der Offenlegungspflicht ist nach OSP  zu schreiben. Es
-    sollen die Ergebnisse der Prüfung, 
-
-    ob der Kunde offenlegungspflichtig ist  nach OSP-§18 Anwendung geschrieben
-    werden. 
-
-    Entweder, der Kunde ist offenlegungspflichtig oder es wurden
+    sollen die Ergebnisse der Prüfung, ob der Kunde offenlegungspflichtig ist  nach OSP-§18 Anwendung geschrieben
+    werden. Entweder, der Kunde ist offenlegungspflichtig oder es wurden
     Ausnahmetatbestände ermittelt.
 
     # Rahmenbedingungen
-
     Welche Rahmenbedingungen sind zu beachten, damit der Service genutzt werden
     kann, insbesondere
       - Rechte: Der aufrufende User muss in ESBConfig die Berechtigung zum Aufruf von Service 'DynsBA'/Domäne OSP besitzen. 
@@ -61,23 +46,19 @@ info:
       - Wird die Systemnummer publiziert?
 
     # Schutzniveau
-
     Schutz-Niveau des IT-Systems oder geringer
 
 
     # Release-Notes
-
     2020-05-14: V0.9.71  Datumsformat ISO yyyy-MM-dd
 
 
     # Status
-
     Version 0.9.71: ein MockUp Service. Dieser liefert ein Objekt namens
     DisclosureRequirement also Offenlegungspflichtkennzeichen.
 
 
     # Offene Detailpunkte
-
     Welche Ausprägungen bilden wir da ab? Mögliche Quellen: Statusausprägungen,
     die ApiOmat im Zuge Versionierung anbietet und/oder Packaging Konzepte z.B.
     für Python
@@ -295,7 +276,7 @@ components:
       properties:
         id:
           type: string
-          description: eindeutiger Schlüssel der Offenlegungspflichtkennzeichen-Daten
+          description: Eindeutiger Schlüssel der Offenlegungspflichtkennzeichen-Daten
           example: '43525748'
         type:
           type: string
@@ -402,7 +383,7 @@ components:
       example:
         data:
           date: '2020-02-02T14:25:00.000+02:00'
-          gen_con_class: Bilanz
+          document_type: Bilanz
     OccurenceResponse:
       type: object
       properties:

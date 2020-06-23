@@ -4,6 +4,7 @@ info:
   description: >
 
     # Beschreibung
+    
     Der Product-Service dient dem Auslesen von Produktdaten des Kunden aus
     OSPlus. Anhand der Kundensatznummer wird eine Liste geliefert, welche
     Produkte der Kunde nutzt. Es werden jeweils die Produktkategorien
@@ -12,6 +13,7 @@ info:
     mitgeliefert.
      
     # Rahmenbedingungen
+    
     Welche Rahmenbedingungen sind zu beachten, damit der Service genutzt werden
     kann, insbesondere
       - Rechte: Welche Rechte müssen vorhanden sein/beantragt werden, damit der Service genutzt werden kann
@@ -21,6 +23,7 @@ info:
       - Serviceparameter: weitergehende Regelungen wie Quotas etc. sind nicht Teil der Swagger-Dokumentation, sondern Parameter im API-Gateway, werden dort gepflegt und publiziert
 
     # Domäne/Subdomäne
+    
       - Welcher fachlichen Domäne ist der Service zugeordnet?
       - Die Information dient der Strukturierung/Ordnung der Services im API-Verzeichnis aus Sicht der fachlichen Architektur.
       - Bei Composite Services über mehrere Domänen gibt i.d.R. eine Domäne, die führend ist (Einstiegspunkt). Der Service wird dieser Domäne zugeordnet.
@@ -37,15 +40,19 @@ info:
       - Wird die Systemnummer publiziert?
 
     # Schutzniveau
+    
     Schutz-Niveau des IT-Systems oder geringer
 
     # Release-Notes
+    
     2020-06-17: V0.1.0  Pre-Release. MockUp ausgebaut. Healthcheck implementiert. ProductResponse eingefuegt. KeyDirService eingebunden.
 
     # Status
+    
     Version 0.1.0: Pre-Release. MockUp ausgebaut. Healthcheck implementiert. ProductResponse eingefuegt. KeyDirService eingebunden.
 
     # Offene Detailpunkte
+    
     Welche Ausprägungen bilden wir da ab? Mögliche Quellen: Statusausprägungen,
     die ApiOmat im Zuge Versionierung anbietet und/oder Packaging Konzepte z.B.
     für Python

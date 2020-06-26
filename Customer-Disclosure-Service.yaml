@@ -4,12 +4,14 @@ info:
   description: >
 
     # Beschreibung Operation 1:
-    Das Prüfergebnis aus der Offenlegungspflicht ist nach OSP  zu schreiben. Es
-    sollen die Ergebnisse der Prüfung, ob der Kunde offenlegungspflichtig ist  nach OSP-§18 Anwendung geschrieben
+    
+    Das Pruefergebnis aus der Offenlegungspflicht ist nach OSP  zu schreiben. Es
+    sollen die Ergebnisse der Pruefung, ob der Kunde offenlegungspflichtig ist  nach OSP-§18 Anwendung geschrieben
     werden. Entweder, der Kunde ist offenlegungspflichtig oder es wurden
     Ausnahmetatbestände ermittelt.
 
     # Beschreibung Operation 2:
+    
     Es soll nach OSP geschrieben werden, wann die Offenlegung erfolgt ist.
     Wenn der Kunde die erforderlichen Unterlagen eingereicht hat, 
     erfasst der Berater in der GUI das Datum der Auswertung der Unterlagen und
@@ -17,19 +19,21 @@ info:
     Diese Informationen sollen nach OSP geschrieben werden.
 
     # Beschreibung Operation 3:
-    Das Prüfergebnis aus der Offenlegungspflicht ist nach OSP  zu schreiben. Es
-    sollen die Ergebnisse der Prüfung, ob der Kunde offenlegungspflichtig ist  nach OSP-§18 Anwendung geschrieben
+    
+    Das Pruefergebnis aus der Offenlegungspflicht ist nach OSP  zu schreiben. Es
+    sollen die Ergebnisse der Pruefung, ob der Kunde offenlegungspflichtig ist  nach OSP-§18 Anwendung geschrieben
     werden. Entweder, der Kunde ist offenlegungspflichtig oder es wurden
     Ausnahmetatbestände ermittelt.
 
     # Rahmenbedingungen
+    
     Welche Rahmenbedingungen sind zu beachten, damit der Service genutzt werden
     kann, insbesondere
       - Rechte: Der aufrufende User muss in ESBConfig die Berechtigung zum Aufruf von Service 'DynsBA'/Domäne OSP besitzen. 
         Zur Abfrage von Daten zu Mitarbeitern (Organkennzeichen gesetzt) benötigt der zugeordnete SUSer das Privileg 'MITARBEITER'. 
         Falls das Zugriffsschutz-Kennzeichen einer gesuchten Personen gesetzt ist
         (ZUGRIFFSSCHUTZ_KZ = 'J' ), benötigt der Anwender das Privileg 'ZUGRIFF-PERS'.
-      - Verfügbarkeitszeiten: Wann ist der Service verfügbar?
+      - Verfuegbarkeitszeiten: Wann ist der Service verfuegbar?
       - Offene Detailpunkte:
       - Rechte: Im Zielzustand sollte mit der Vergabe des Rechts zur Nutzung des Service auch alle darunterliegenden Rechte, die erforderlich sind, angelegt werden (Service-Gedanke)
       - Serviceparameter: weitergehende Regelungen wie Quotas etc. sind nicht Teil der Swagger-Dokumentation, sondern Parameter im API-Gateway, werden dort gepflegt und publiziert
@@ -46,23 +50,27 @@ info:
       - Wird die Systemnummer publiziert?
 
     # Schutzniveau
+    
     Schutz-Niveau des IT-Systems oder geringer
 
-
     # Release-Notes
+    
     2020-05-14: V0.9.71  Datumsformat ISO yyyy-MM-dd
-
+    2020-05-28: V0.9.72  Typ Boolean eingefuegt.
+    2020-06-03: v0.9.73  RequestBodies jetzt mit schema:type: object
+    2020-06-22: v0.1.0   gen_con_type und gen_con_class Felder aus Refuse entfernt. Health hinzugefuegt.
+    2020-06-22: v0.1.1   Request Objekten fuer den Code-Generator optimiert.
 
     # Status
-    Version 0.9.71: ein MockUp Service. Dieser liefert ein Objekt namens
-    DisclosureRequirement also Offenlegungspflichtkennzeichen.
-
+    
+    Version 0.1.1:   Request Objekten fuer den Code-Generator optimiert.
 
     # Offene Detailpunkte
+    
     Welche Ausprägungen bilden wir da ab? Mögliche Quellen: Statusausprägungen,
     die ApiOmat im Zuge Versionierung anbietet und/oder Packaging Konzepte z.B.
-    für Python
-  version: 0.9.71
+    fuer Python
+  version: 0.1.1
   termsOfService: /agb
   contact:
     name: Nicholas Trawniczek
@@ -72,8 +80,7 @@ info:
     name: Apache 2.0
     url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
   x-keywords: >-
-    Prüfungsergebnis, Offenlegungspflicht, Ausnahmetatbestand, Erfolgt,
-    Verweigert, Offenlegung
+    Pruefungsergebnis, Offenlegungspflicht, Ausnahmetatbestand, Erfolgt, Verweigert, Offenlegung
   x-logo:
     altText: LBBW logo
     url: 'https://www.lbbw.de/res/images/logos/lbbw-logo-darkblue_131586_m.svg'
@@ -104,21 +111,48 @@ tags:
 x-tagGroups:
   - name: Disclosure_Service
     tags:
+      - healthcheck
       - update disclosure requirement
       - update disclosure occurence
       - update disclosure refuse
 paths:
+  '/health':
+    get:
+      security: []
+      tags: [healthcheck]
+      summary: Allgemeiner Healthcheck.
+      description: |
+        Dieser muss ohne Autorisierung aufrufbar sein.
+        Die Minimalanforderung ist ein {status: 'UP'} wenn der Service gerufen werden kann.
+      operationId: getHealthStatus
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthCheckOkResponse"
+              example:
+                status: "UP"
+        '503':
+          description: Error - Meldung nur möglich, wenn Pruefung ausserhalb des Service erfolgt.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthCheckErrorResponse'
+              example:
+                status: "OUT_OF_SERVICE"
   '/requirement/{customerId}':
     parameters:
-      - $ref: '#/components/parameters/service-path'
       - $ref: '#/components/parameters/x-forwarded-proto'
       - $ref: '#/components/parameters/x-forwarded-host'
+      - $ref: '#/components/parameters/x-forwarded-prefix'
     put:
       operationId: updateDisclosureRequirementByCustomerId
       summary: Schreiben der Offenlegungspflichtkennzeichen-Daten
       description: >-
         Aktualisiert und liefert Offenlegungspflichtkennzeichen-Daten zu einem
-        Kunden-Datensatz zurück
+        Kunden-Datensatz zurueck
       tags:
         - update disclosure requirement
       parameters:
@@ -134,9 +168,7 @@ paths:
         content:
           application/vnd.api+json:
             schema:
-              properties:
-                data:
-                  $ref: '#/components/schemas/RequirementRequest'
+              $ref: '#/components/schemas/RequirementRequest'
       responses:
         '200':
           description: Disclosure requirement successfully updated.
@@ -152,15 +184,15 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
   '/refuse/{customerId}':
     parameters:
-      - $ref: '#/components/parameters/service-path'
       - $ref: '#/components/parameters/x-forwarded-proto'
       - $ref: '#/components/parameters/x-forwarded-host'
+      - $ref: '#/components/parameters/x-forwarded-prefix'
     put:
       operationId: updateDisclosureRefuseByCustomerId
       summary: Schreiben der Offenlegungspflicht-verweigert-Daten
       description: >-
         Aktualisiert und liefert Offenlegungspflicht-verweigert-Daten zu einem
-        Kunden-Datensatz zurück
+        Kunden-Datensatz zurueck
       tags:
         - update disclosure refuse
       parameters:
@@ -192,15 +224,15 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
   '/occurence/{customerId}':
     parameters:
-      - $ref: '#/components/parameters/service-path'
       - $ref: '#/components/parameters/x-forwarded-proto'
       - $ref: '#/components/parameters/x-forwarded-host'
+      - $ref: '#/components/parameters/x-forwarded-prefix'
     put:
       operationId: updateDisclosureOccurenceByCustomerId
       summary: Schreiben der Offenlegung-Erfolgt-Daten
       description: >-
         Aktualisiert und liefert Offenlegung-Erfolgt-Daten zu einem
-        Kunden-Datensatz zurück
+        Kunden-Datensatz zurueck
       tags:
         - update disclosure occurence
       parameters:
@@ -216,9 +248,7 @@ paths:
         content:
           application/vnd.api+json:
             schema:
-              properties:
-                data:
-                  $ref: '#/components/schemas/OccurenceRequest'
+              $ref: '#/components/schemas/OccurenceRequest'
       responses:
         '200':
           description: Disclosure requirement successfully updated.
@@ -242,12 +272,6 @@ components:
       properties:
         data:
           $ref: '#/components/schemas/Requirement'
-      example:
-        data:
-          disclosure_requirement: 'true'
-          exception_reason: Ausnahmetatbestand Grund
-          valid_from: '2020-02-02T14:25:00.000+02:00'
-          date_of_expiry: '2020-02-02T14:25:00.000+02:00'
     RequirementResponse:
       type: object
       properties:
@@ -276,7 +300,7 @@ components:
       properties:
         id:
           type: string
-          description: Eindeutiger Schlüssel der Offenlegungspflichtkennzeichen-Daten
+          description: Eindeutiger Schluessel der Offenlegungspflichtkennzeichen-Daten
           example: '43525748'
         type:
           type: string
@@ -288,24 +312,21 @@ components:
           type: object
           properties:
             disclosure_requirement:
-              type: string
+              type: boolean
               description: Offenlegungspflicht Aktiv-KZ Ja-Aktiv/Nein-Inaktiv.
-              example: J
-              enum:
-                - J
-                - 'N'
+              example: true
             exception_reason:
               type: string
               description: Ausnahmetatbestand Grund
               example: Ausnahmetatbestand_Grund
             valid_from:
               type: string
-              description: Datum gültig ab.
+              description: Datum gueltig ab.
               example: '2019-04-12T14:25:00.000+02:00'
               format: date-time
             date_of_expiry:
               type: string
-              description: Datum gültig ab.
+              description: Datum gueltig ab.
               example: '2019-04-12T14:25:00.000+02:00'
               format: date-time
     RefuseRequest:
@@ -313,12 +334,6 @@ components:
       properties:
         data:
           $ref: '#/components/schemas/Refuse'
-      example:
-        data:
-          date: '2020-02-02T14:25:00.000+02:00'
-          customer_type: 52
-          gen_con_type: GENKON-PERS
-          gen_con_class: LBBWEXT004
     RefuseResponse:
       type: object
       properties:
@@ -337,8 +352,6 @@ components:
             attributes:
               date: '2020-02-02T14:25:00.000+02:00'
               customer_type: 52
-              gen_con_type: GENKON-PERS
-              gen_con_class: LBBWEXT004
         links:
           self: 'http://api.lbbw.de/customer/disclosure-service/refuse/43525748'
     Refuse:
@@ -347,7 +360,7 @@ components:
       properties:
         id:
           type: string
-          description: Eindeutiger Schlüssel der Offenlegungspflicht-verweigert-Daten
+          description: Eindeutiger Schluessel der Offenlegungspflicht-verweigert-Daten
           example: '43525748'
         type:
           type: string
@@ -367,23 +380,11 @@ components:
               type: number
               description: Kunden Art.
               example: 52
-            gen_con_type:
-              type: string
-              description: Typ des generischen Konstrukts.
-              example: GENKON-PERS
-            gen_con_class:
-              type: string
-              description: Klasse des generischen Konstrukts.
-              example: LBBWEXT004
     OccurenceRequest:
       type: object
       properties:
         data:
           $ref: '#/components/schemas/Occurence'
-      example:
-        data:
-          date: '2020-02-02T14:25:00.000+02:00'
-          document_type: Bilanz
     OccurenceResponse:
       type: object
       properties:
@@ -410,7 +411,7 @@ components:
       properties:
         id:
           type: string
-          description: Eindeutiger Schlüssel
+          description: Eindeutiger Schluessel
           example: '43525748'
         type:
           type: string
@@ -455,20 +456,34 @@ components:
           type: string
         detail:
           type: string
+    # HealthCheck analog zu SpringBoot
+    HealthCheckOkResponse:
+      type: object
+      required:
+        - status
+      properties:
+        status:
+          type: string
+          enum:
+            - UP
+        components:
+          type: object
+    HealthCheckErrorResponse:
+      type: object
+      required:
+        - status
+      properties:
+        status:
+          type: string
+          enum:
+            - OUT_OF_SERVICE
+        components:
+          type: object
   parameters:
-    service-path:
-      name: service-path
-      in: header
-      description: >-
-        Pfad mit Domäne und Servicename aus dem API-Verzeichnis. Wird zur
-        Bildung der links verwendet.
-      schema:
-        type: string
-        example: /customer/disclosure-service
     x-forwarded-proto:
       name: x-forwarded-proto
       in: header
-      description: 'Protokoll, mit dem der ursprüngliche API-Aufruf erfolgte'
+      description: 'Protokoll, mit dem der urspruengliche API-Aufruf erfolgte'
       schema:
         type: string
         example: https
@@ -476,11 +491,21 @@ components:
       name: x-forwarded-host
       in: header
       description: >-
-        Host, an den die ursprüngliche Anfrage ging. Wird zur Bildung der links
+        Host, an den die urspruengliche Anfrage ging. Wird zur Bildung der links
         verwendet
       schema:
         type: string
         format: url
+        example: api.lbbw.de
+    x-forwarded-prefix:
+      name: x-forwarded-prefix
+      in: header
+      description: >-
+        Pfad mit Domäne und Servicename aus dem API-Verzeichnis. Wird zur
+        Bildung der links verwendet.
+      schema:
+        type: string
+        example: /customer/disclosure-service
   securitySchemes:
     EsbAuthorization:
       type: http
@@ -489,4 +514,4 @@ components:
       type: apiKey
       in: header
       name: x-app-id
-      description: Applikationskürzel zum FIA-User (wird zur Zuordnung des Client benutzt)
+      description: Applikationskuerzel zum FIA-User (wird zur Zuordnung des Client benutzt)

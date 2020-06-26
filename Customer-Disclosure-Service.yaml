@@ -115,6 +115,11 @@ x-tagGroups:
       - update disclosure requirement
       - update disclosure occurence
       - update disclosure refuse
+  - name: Models
+    tags:
+      - requirement_model
+      - refuse_model
+      - occurence_model
 paths:
   '/health':
     get:

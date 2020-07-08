@@ -13,7 +13,7 @@ info:
     # Beschreibung Operation 2:
     
     Es soll nach OSP geschrieben werden, wann die Offenlegung erfolgt ist.
-    Wenn der Kunde die erforderlichen Unterlagen eingereicht hat, 
+    Wenn der Berater die erforderlichen Unterlagen ausgewertet hat, 
     erfasst der Berater in der GUI das Datum der Auswertung der Unterlagen und
     die Art der eingereichten Dokumente.
     Diese Informationen sollen nach OSP geschrieben werden.
@@ -55,20 +55,21 @@ info:
 
     # Release-Notes
     
-    2020-05-14: V0.9.71  Datumsformat ISO yyyy-MM-dd
-    2020-05-28: V0.9.72  Typ Boolean eingefuegt.
+    2020-05-14: v0.9.71  Datumsformat ISO yyyy-MM-dd
+    2020-05-28: v0.9.72  Typ Boolean eingefuegt.
     2020-06-03: v0.9.73  RequestBodies jetzt mit schema:type: object
     2020-06-22: v0.1.0   gen_con_type und gen_con_class Felder aus Refuse entfernt. Health hinzugefuegt.
     2020-06-22: v0.1.1   Request Objekten fuer den Code-Generator optimiert.
+    2020-06-22: v0.1.2   Umstellung auf Patch anstelle Put. Diverse Verbesserungen.
 
     # Status
     
-    Version 0.1.1:   Request Objekten fuer den Code-Generator optimiert.
+    Version 0.1.2:   Umstellung auf Patch anstelle Put. Diverse Verbesserungen.
 
     # Offene Detailpunkte
     
     Welche Ausprägungen bilden wir da ab? Mögliche Quellen: Statusausprägungen,
-    die ApiOmat im Zuge Versionierung anbietet und/oder Packaging Konzepte z.B.
+    die ApiOmat im Zuge Versionierung an bietet und/oder Packaging Konzepte z.B.
     fuer Python
   version: 0.1.1
   termsOfService: /agb
@@ -112,9 +113,9 @@ x-tagGroups:
   - name: Disclosure_Service
     tags:
       - healthcheck
-      - update disclosure requirement
-      - update disclosure occurence
-      - update disclosure refuse
+      - patch disclosure requirement
+      - patch disclosure occurence
+      - patch disclosure refuse
   - name: Models
     tags:
       - requirement_model
@@ -152,14 +153,14 @@ paths:
       - $ref: '#/components/parameters/x-forwarded-proto'
       - $ref: '#/components/parameters/x-forwarded-host'
       - $ref: '#/components/parameters/x-forwarded-prefix'
-    put:
-      operationId: updateDisclosureRequirementByCustomerId
+    patch:
+      operationId: patchDisclosureRequirement
       summary: Schreiben der Offenlegungspflichtkennzeichen-Daten
       description: >-
         Aktualisiert und liefert Offenlegungspflichtkennzeichen-Daten zu einem
         Kunden-Datensatz zurueck
       tags:
-        - update disclosure requirement
+        - patch disclosure requirement
       parameters:
         - name: customerId
           in: path
@@ -176,7 +177,7 @@ paths:
               $ref: '#/components/schemas/RequirementRequest'
       responses:
         '200':
-          description: Disclosure requirement successfully updated.
+          description: Disclosure requirement successfully patched.
           content:
             application/vnd.api+json:
               schema:
@@ -192,14 +193,14 @@ paths:
       - $ref: '#/components/parameters/x-forwarded-proto'
       - $ref: '#/components/parameters/x-forwarded-host'
       - $ref: '#/components/parameters/x-forwarded-prefix'
-    put:
-      operationId: updateDisclosureRefuseByCustomerId
+    patch:
+      operationId: patchDisclosureRefuse
       summary: Schreiben der Offenlegungspflicht-verweigert-Daten
       description: >-
         Aktualisiert und liefert Offenlegungspflicht-verweigert-Daten zu einem
         Kunden-Datensatz zurueck
       tags:
-        - update disclosure refuse
+        - patch disclosure refuse
       parameters:
         - name: customerId
           in: path
@@ -216,7 +217,7 @@ paths:
               $ref: '#/components/schemas/RefuseRequest'
       responses:
         '200':
-          description: Disclosure refuse successfully updated.
+          description: Disclosure refuse successfully patched.
           content:
             application/vnd.api+json:
               schema:
@@ -232,14 +233,14 @@ paths:
       - $ref: '#/components/parameters/x-forwarded-proto'
       - $ref: '#/components/parameters/x-forwarded-host'
       - $ref: '#/components/parameters/x-forwarded-prefix'
-    put:
-      operationId: updateDisclosureOccurenceByCustomerId
+    patch:
+      operationId: patchDisclosureOccurence
       summary: Schreiben der Offenlegung-Erfolgt-Daten
       description: >-
         Aktualisiert und liefert Offenlegung-Erfolgt-Daten zu einem
         Kunden-Datensatz zurueck
       tags:
-        - update disclosure occurence
+        - patch disclosure occurence
       parameters:
         - name: customerId
           in: path
@@ -256,7 +257,7 @@ paths:
               $ref: '#/components/schemas/OccurenceRequest'
       responses:
         '200':
-          description: Disclosure requirement successfully updated.
+          description: Disclosure successfully patched.
           content:
             application/vnd.api+json:
               schema:
@@ -355,17 +356,21 @@ components:
           - type: refuses
             id: '43525748'
             attributes:
-              date: '2020-02-02T14:25:00.000+02:00'
+              date_of_refuse: '2020-02-02T14:25:00.000+02:00'
               customer_type: 52
         links:
           self: 'http://api.lbbw.de/customer/disclosure-service/refuse/43525748'
     Refuse:
       type: object
       description: Datenmodell Offenlegungspflicht-verweigert.
+      required:
+      - id
+      - type
+      - attributes
       properties:
         id:
           type: string
-          description: Eindeutiger Schluessel der Offenlegungspflicht-verweigert-Daten
+          description: Eindeutiger Schluessel - customerId
           example: '43525748'
         type:
           type: string
@@ -375,16 +380,27 @@ components:
           example: refuses
         attributes:
           type: object
+          required:
+          - date_of_refuse
           properties:
-            date:
+            refuseId:
+              type: string
+              description: ID des generischen Konstrukts.
+              example: '8395-07-07-20.34.32.403320'
+            date_of_refuse:
               type: string
               description: Verweigerung erfolgt am.
               example: '2019-04-12T14:25:00.000+02:00'
               format: date-time
-            customer_type:
-              type: number
-              description: Kunden Art.
-              example: 52
+            date_valid_to:
+              type: string
+              description: Verweigerung gültig bis.
+              example: '2019-04-12T14:25:00.000+02:00'
+              format: date-time
+            messageText:
+              type: string
+              description: Meldungstext aus OSPlus Antwort. Hier werden auch Fehler dokumentiert und an den Aufrufer zurückgegeben.
+              example: 'MGK16340N010 - Der Prozess wurde erfolgreich ausgefuehrt.'
     OccurenceRequest:
       type: object
       properties:
@@ -416,7 +432,7 @@ components:
       properties:
         id:
           type: string
-          description: Eindeutiger Schluessel
+          description: Eindeutiger Schluessel - customerId
           example: '43525748'
         type:
           type: string

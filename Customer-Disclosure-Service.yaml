@@ -68,7 +68,7 @@ info:
     2020-06-22: v0.1.1   Request Objekten fuer den Code-Generator optimiert.
     2020-07-08: v0.1.2   Umstellung auf Patch anstelle Put. Diverse Verbesserungen.
     2020-07-09: v0.1.3   CustomerId als Query-Parameter. Tags und Endpoints umbenannt. Enum des Occurence eingefuegt. Required geadded.
-    2020-07-13: v0.1.4   Refuse -> Refusal.
+    2020-07-13: v0.1.4   Refuse -> Refusal. Example Refusal angepasst.
 
     # Status
     
@@ -361,10 +361,10 @@ components:
           - type: refusals
             id: '43525748'
             attributes:
-              refusalId: '8395-07-07-20.34.32.403320'
-              date_of_refusal: '2020-02-02T14:25:00.000+02:00'
-              date_valid_to: '2019-04-12T14:25:00.000+02:00'
-              messageText: 'MGK16340N010 - Der Prozess wurde erfolgreich ausgefuehrt.'
+              refusalId: '2635-07-15-09.52.34.903320'
+              date_of_refusal: '2020-02-02'
+              date_valid_to: '9999-12-31-23.59.59.999999'
+              messageText: 'Die Verweigerung existiert bereits.'
         links:
           self: 'http://api.lbbw.de/customer/disclosure-service/refusals'
     Refusal:
@@ -377,7 +377,7 @@ components:
       properties:
         id:
           type: string
-          description: Eindeutiger Schluessel - customerId
+          description: Eindeutiger Schluessel - customerId oder PersNr. Optional wenn Refusal-Objekt als Eingabeparameter fungiert.
           example: '43525748'
         type:
           type: string
@@ -392,24 +392,25 @@ components:
           properties:
             refusalId:
               type: string
-              description: ID des generischen Konstrukts.
-              example: '8395-07-07-20.34.32.403320'
+              description: ID des generischen Konstrukts. Optional wenn Refusal-Objekt als Eingabeparameter fungiert.
+              example: '2635-07-15-09.52.34.903320'
             date_of_refusal:
               type: string
-              description: Verweigerung erfolgt am.
-              example: '2019-04-12T14:25:00.000+02:00'
+              description: Verweigerung erfolgt am Datum. Mussfeld wenn im RequestBody.
+              example: '2020-02-02'
               format: date-time
             date_valid_to:
               type: string
-              description: Verweigerung gültig bis.
-              example: '2019-04-12T14:25:00.000+02:00'
+              description: Verweigerung gültig bis. Optional wenn Refusal-Objekt als Eingabeparameter fungiert.
+              example: '9999-12-31-23.59.59.999999'
               format: date-time
             messageText:
               type: string
               description: >- 
-                Meldungstext aus OSPlus Antwort. 
-                Hier werden auch Fehler dokumentiert und an den Aufrufer zurückgegeben.
-              example: 'MGK16340N010 - Der Prozess wurde erfolgreich ausgefuehrt.'
+                Meldungstext ob die Anlage durchgefuehrt wurde 
+                oder ob die Verweigerung existierte bereits. 
+                Optionales Feld wenn Refusal-Objekt als Eingabeparameter fungiert.
+              example: 'Die Verweigerung existiert bereits.'
     OccurenceRequest:
       type: object
       required:

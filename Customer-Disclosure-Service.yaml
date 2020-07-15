@@ -3,14 +3,14 @@ info:
   title: Disclosure-Service API Description
   description: >
 
-    # Beschreibung Operation 1:
+    # Beschreibung Operation 1 - OL Pflicht - Requirements:
     
-    Das Pruefergebnis aus der Offenlegungspflicht ist nach OSP  zu schreiben. Es
-    sollen die Ergebnisse der Pruefung, ob der Kunde offenlegungspflichtig ist  nach OSP-§18 Anwendung geschrieben
+    Das Pruefergebnis aus der Offenlegungspflicht ist nach OSP  zu schreiben. 
+    Es sollen die Ergebnisse der Pruefung, ob der Kunde offenlegungspflichtig ist  nach OSP-§18 Anwendung geschrieben
     werden. Entweder, der Kunde ist offenlegungspflichtig oder es wurden
     Ausnahmetatbestände ermittelt.
 
-    # Beschreibung Operation 2:
+    # Beschreibung Operation 2 - OL Erfolgt - Occurences:
     
     Es soll nach OSP geschrieben werden, wann die Offenlegung erfolgt ist.
     Wenn der Berater die erforderlichen Unterlagen ausgewertet hat, 
@@ -18,12 +18,12 @@ info:
     die Art der eingereichten Dokumente.
     Diese Informationen sollen nach OSP geschrieben werden.
 
-    # Beschreibung Operation 3:
+    # Beschreibung Operation 3 - OL Verweigert - Refusals:
     
-    Das Pruefergebnis aus der Offenlegungspflicht ist nach OSP  zu schreiben. Es
-    sollen die Ergebnisse der Pruefung, ob der Kunde offenlegungspflichtig ist  nach OSP-§18 Anwendung geschrieben
-    werden. Entweder, der Kunde ist offenlegungspflichtig oder es wurden
-    Ausnahmetatbestände ermittelt.
+    Es soll nach OSP ein GEKO geschrieben werden, wenn i.R. der Anforderung von 
+    Dokumenten der Kunde die Einreichung generell verweigert.
+    Verweigert der Kunde die Offenlegung seiner wirtschaftlichen Verhältnisse, soll dies in OSP geschrieben werden. 
+    Dafür gibt es bisher kein Kennzeichen. Es wird ein neuer GeKo bzw. eine neue Rolle benötigt. 
 
     # Rahmenbedingungen
     
@@ -53,25 +53,27 @@ info:
     
     Schutz-Niveau des IT-Systems oder geringer
 
-    # Release-Notes
-    
-    2020-05-14: v0.9.71  Datumsformat ISO yyyy-MM-dd
-    2020-05-28: v0.9.72  Typ Boolean eingefuegt.
-    2020-06-03: v0.9.73  RequestBodies jetzt mit schema:type: object
-    2020-06-22: v0.1.0   gen_con_type und gen_con_class Felder aus Refuse entfernt. Health hinzugefuegt.
-    2020-06-22: v0.1.1   Request Objekten fuer den Code-Generator optimiert.
-    2020-06-22: v0.1.2   Umstellung auf Patch anstelle Put. Diverse Verbesserungen.
-
-    # Status
-    
-    Version 0.1.2:   Umstellung auf Patch anstelle Put. Diverse Verbesserungen.
-
     # Offene Detailpunkte
     
     Welche Ausprägungen bilden wir da ab? Mögliche Quellen: Statusausprägungen,
     die ApiOmat im Zuge Versionierung an bietet und/oder Packaging Konzepte z.B.
     fuer Python
-  version: 0.1.1
+    
+    # Release-Notes
+    
+    2020-05-14: v0.9.71  Datumsformat ISO yyyy-MM-dd
+    2020-05-28: v0.9.72  Typ Boolean eingefuegt.
+    2020-06-03: v0.9.73  RequestBodies jetzt mit schema:type: object
+    2020-06-22: v0.1.0   gen_con_type und gen_con_class Felder aus Refusal entfernt. Health hinzugefuegt.
+    2020-06-22: v0.1.1   Request Objekten fuer den Code-Generator optimiert.
+    2020-07-08: v0.1.2   Umstellung auf Patch anstelle Put. Diverse Verbesserungen.
+    2020-07-09: v0.1.3   CustomerId als Query-Parameter. Tags und Endpoints umbenannt. Enum des Occurence eingefuegt. Required geadded.
+    2020-07-13: v0.1.4   Refuse -> Refusal.
+
+    # Status
+    
+    Version 0.1.4:   Refuse -> Refusal.
+  version: 0.1.4
   termsOfService: /agb
   contact:
     name: Nicholas Trawniczek
@@ -99,10 +101,10 @@ tags:
     description: >
       <SchemaDefinition schemaRef="#/components/schemas/Requirement"
       showReadOnly={true} showWriteOnly={true} />
-  - name: refuse_model
+  - name: refusal_model
     x-displayName: Das Offenlegungspflicht-verweigert-Datenmodell
     description: >
-      <SchemaDefinition schemaRef="#/components/schemas/Refuse"
+      <SchemaDefinition schemaRef="#/components/schemas/Refusal"
       showReadOnly={true} showWriteOnly={true} />
   - name: occurence_model
     x-displayName: Das Offenlegungspflicht-erfolgt-Datenmodell
@@ -113,13 +115,13 @@ x-tagGroups:
   - name: Disclosure_Service
     tags:
       - healthcheck
-      - patch disclosure requirement
-      - patch disclosure occurence
-      - patch disclosure refuse
+      - put requirements
+      - put occurences
+      - put refusals
   - name: Models
     tags:
       - requirement_model
-      - refuse_model
+      - refusal_model
       - occurence_model
 paths:
   '/health':
@@ -127,9 +129,8 @@ paths:
       security: []
       tags: [healthcheck]
       summary: Allgemeiner Healthcheck.
-      description: |
-        Dieser muss ohne Autorisierung aufrufbar sein.
-        Die Minimalanforderung ist ein {status: 'UP'} wenn der Service gerufen werden kann.
+      description: >-
+        Dieser muss ohne Autorisierung aufrufbar sein. Die Minimalanforderung ist ein {status: 'UP'} wenn der Service gerufen werden kann.
       operationId: getHealthStatus
       responses:
         '200':
@@ -148,28 +149,23 @@ paths:
                 $ref: '#/components/schemas/HealthCheckErrorResponse'
               example:
                 status: "OUT_OF_SERVICE"
-  '/requirement/{customerId}':
-    parameters:
-      - $ref: '#/components/parameters/x-forwarded-proto'
-      - $ref: '#/components/parameters/x-forwarded-host'
-      - $ref: '#/components/parameters/x-forwarded-prefix'
-    patch:
-      operationId: patchDisclosureRequirement
+  '/requirements':
+    put:
+      operationId: putRequirements
       summary: Schreiben der Offenlegungspflichtkennzeichen-Daten
       description: >-
         Aktualisiert und liefert Offenlegungspflichtkennzeichen-Daten zu einem
-        Kunden-Datensatz zurueck
+        Kunden-Datensatz zurueck.
       tags:
-        - patch disclosure requirement
+        - put requirements
       parameters:
         - name: customerId
-          in: path
+          in: query
           description: KUSA
           required: true
           schema:
             $ref: '#/components/schemas/CustomerId'
       requestBody:
-        description: Disclosure-requirement
         required: true
         content:
           application/vnd.api+json:
@@ -177,7 +173,7 @@ paths:
               $ref: '#/components/schemas/RequirementRequest'
       responses:
         '200':
-          description: Disclosure requirement successfully patched.
+          description: Requirement successfully put.
           content:
             application/vnd.api+json:
               schema:
@@ -188,68 +184,58 @@ paths:
             application/vnd.api+json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-  '/refuse/{customerId}':
-    parameters:
-      - $ref: '#/components/parameters/x-forwarded-proto'
-      - $ref: '#/components/parameters/x-forwarded-host'
-      - $ref: '#/components/parameters/x-forwarded-prefix'
-    patch:
-      operationId: patchDisclosureRefuse
+  '/refusals':
+    put:
+      operationId: putRefusals
       summary: Schreiben der Offenlegungspflicht-verweigert-Daten
       description: >-
         Aktualisiert und liefert Offenlegungspflicht-verweigert-Daten zu einem
         Kunden-Datensatz zurueck
       tags:
-        - patch disclosure refuse
+        - put refusals
       parameters:
         - name: customerId
-          in: path
+          in: query
           description: KUSA
           required: true
           schema:
             $ref: '#/components/schemas/CustomerId'
       requestBody:
-        description: Disclosure-refuse
         required: true
         content:
           application/vnd.api+json:
             schema:
-              $ref: '#/components/schemas/RefuseRequest'
+              $ref: '#/components/schemas/RefusalRequest'
       responses:
         '200':
-          description: Disclosure refuse successfully patched.
+          description: Refusal successfully put.
           content:
             application/vnd.api+json:
               schema:
-                $ref: '#/components/schemas/RefuseResponse'
+                $ref: '#/components/schemas/RefusalResponse'
         '400':
           description: Invalid Request
           content:
             application/vnd.api+json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-  '/occurence/{customerId}':
-    parameters:
-      - $ref: '#/components/parameters/x-forwarded-proto'
-      - $ref: '#/components/parameters/x-forwarded-host'
-      - $ref: '#/components/parameters/x-forwarded-prefix'
-    patch:
-      operationId: patchDisclosureOccurence
+  '/occurences':
+    put:
+      operationId: putOccurences
       summary: Schreiben der Offenlegung-Erfolgt-Daten
       description: >-
         Aktualisiert und liefert Offenlegung-Erfolgt-Daten zu einem
-        Kunden-Datensatz zurueck
+        Kunden-Datensatz zurueck.
       tags:
-        - patch disclosure occurence
+        - put occurences
       parameters:
         - name: customerId
-          in: path
+          in: query
           description: KUSA
           required: true
           schema:
             $ref: '#/components/schemas/CustomerId'
       requestBody:
-        description: Disclosure-occurence
         required: true
         content:
           application/vnd.api+json:
@@ -257,7 +243,7 @@ paths:
               $ref: '#/components/schemas/OccurenceRequest'
       responses:
         '200':
-          description: Disclosure successfully patched.
+          description: Occurence successfully put.
           content:
             application/vnd.api+json:
               schema:
@@ -275,11 +261,16 @@ components:
   schemas:
     RequirementRequest:
       type: object
+      required:
+      - data
       properties:
         data:
           $ref: '#/components/schemas/Requirement'
     RequirementResponse:
       type: object
+      required:
+      - data
+      - links
       properties:
         data:
           $ref: '#/components/schemas/Requirement'
@@ -296,13 +287,17 @@ components:
             attributes:
               disclosure_requirement: 'true'
               exception_reason: Ausnahmetatbestand Grund
-              valid_from: '2020-02-02T14:25:00.000+02:00'
-              date_of_expiry: '2020-02-02T14:25:00.000+02:00'
+              date_valid_from: '2020-02-02T14:25:00.000+02:00'
+              date_valid_to: '2020-02-02T14:25:00.000+02:00'
         links:
-          self: 'http://api.lbbw.de/customer/disclosure-service/requirement/43525748'
+          self: 'http://api.lbbw.de/customer/disclosure-service/requirements'
     Requirement:
       type: object
       description: Datenmodell Offenlegungspflichtkennzeichen
+      required:
+      - id
+      - type
+      - attributes
       properties:
         id:
           type: string
@@ -316,6 +311,11 @@ components:
           example: requirements
         attributes:
           type: object
+          required:
+          - disclosure_requirement
+          - exception_reason
+          - date_valid_from
+          - date_valid_to
           properties:
             disclosure_requirement:
               type: boolean
@@ -325,26 +325,31 @@ components:
               type: string
               description: Ausnahmetatbestand Grund
               example: Ausnahmetatbestand_Grund
-            valid_from:
+            date_valid_from:
               type: string
               description: Datum gueltig ab.
               example: '2019-04-12T14:25:00.000+02:00'
               format: date-time
-            date_of_expiry:
+            date_valid_to:
               type: string
-              description: Datum gueltig ab.
+              description: Datum gueltig bis.
               example: '2019-04-12T14:25:00.000+02:00'
               format: date-time
-    RefuseRequest:
+    RefusalRequest:
       type: object
+      required:
+      - data
       properties:
         data:
-          $ref: '#/components/schemas/Refuse'
-    RefuseResponse:
+          $ref: '#/components/schemas/Refusal'
+    RefusalResponse:
       type: object
+      required:
+      - data
+      - links
       properties:
         data:
-          $ref: '#/components/schemas/Refuse'
+          $ref: '#/components/schemas/Refusal'
         links:
           type: object
           properties:
@@ -353,14 +358,16 @@ components:
               description: Link zu dieser Ressourcenabfrage
       example:
         data:
-          - type: refuses
+          - type: refusals
             id: '43525748'
             attributes:
-              date_of_refuse: '2020-02-02T14:25:00.000+02:00'
-              customer_type: 52
+              refusalId: '8395-07-07-20.34.32.403320'
+              date_of_refusal: '2020-02-02T14:25:00.000+02:00'
+              date_valid_to: '2019-04-12T14:25:00.000+02:00'
+              messageText: 'MGK16340N010 - Der Prozess wurde erfolgreich ausgefuehrt.'
         links:
-          self: 'http://api.lbbw.de/customer/disclosure-service/refuse/43525748'
-    Refuse:
+          self: 'http://api.lbbw.de/customer/disclosure-service/refusals'
+    Refusal:
       type: object
       description: Datenmodell Offenlegungspflicht-verweigert.
       required:
@@ -376,18 +383,18 @@ components:
           type: string
           description: Objekt Type
           enum:
-            - refuses
-          example: refuses
+            - refusals
+          example: refusals
         attributes:
           type: object
           required:
-          - date_of_refuse
+          - date_of_refusal
           properties:
-            refuseId:
+            refusalId:
               type: string
               description: ID des generischen Konstrukts.
               example: '8395-07-07-20.34.32.403320'
-            date_of_refuse:
+            date_of_refusal:
               type: string
               description: Verweigerung erfolgt am.
               example: '2019-04-12T14:25:00.000+02:00'
@@ -399,15 +406,22 @@ components:
               format: date-time
             messageText:
               type: string
-              description: Meldungstext aus OSPlus Antwort. Hier werden auch Fehler dokumentiert und an den Aufrufer zurückgegeben.
+              description: >- 
+                Meldungstext aus OSPlus Antwort. 
+                Hier werden auch Fehler dokumentiert und an den Aufrufer zurückgegeben.
               example: 'MGK16340N010 - Der Prozess wurde erfolgreich ausgefuehrt.'
     OccurenceRequest:
       type: object
+      required:
+      - data
       properties:
         data:
           $ref: '#/components/schemas/Occurence'
     OccurenceResponse:
       type: object
+      required:
+      - data
+      - links
       properties:
         data:
           $ref: '#/components/schemas/Occurence'
@@ -423,12 +437,16 @@ components:
             id: '43525748'
             attributes:
               date: '2020-02-02T14:25:00.000+02:00'
-              document_type: Bilanz
+              document_type: '0001'
         links:
-          self: 'http://api.lbbw.de/customer/disclosure-service/occurence/43525748'
+          self: 'http://api.lbbw.de/customer/disclosure-service/occurences'
     Occurence:
       type: object
       description: Datenmodell Offenlegungspflicht-erfolgt.
+      required:
+      - id
+      - type
+      - attributes
       properties:
         id:
           type: string
@@ -442,6 +460,9 @@ components:
           example: occurences
         attributes:
           type: object
+          required:
+          - date
+          - document_type
           properties:
             date:
               type: string
@@ -449,9 +470,10 @@ components:
               example: '2019-04-12T14:25:00.000+02:00'
               format: date-time
             document_type:
+              description: Unterlagen Art wie im KWG18_UNTERL_DEF_ANLEGEN beschrieben.
               type: string
-              description: Unterlagen Art.
-              example: Bilanz
+              enum: ['0001','0002','0003','0004','0005','0006','0007','0008','0009','0010','0011','0012','0013','0014','0015','0016','0017','0018','0019','0020','0021','0022','0023','0024','0025','0026','0027']
+              example: '0001'
     CustomerId:
       type: string
       maxLength: 10
@@ -500,33 +522,6 @@ components:
             - OUT_OF_SERVICE
         components:
           type: object
-  parameters:
-    x-forwarded-proto:
-      name: x-forwarded-proto
-      in: header
-      description: 'Protokoll, mit dem der urspruengliche API-Aufruf erfolgte'
-      schema:
-        type: string
-        example: https
-    x-forwarded-host:
-      name: x-forwarded-host
-      in: header
-      description: >-
-        Host, an den die urspruengliche Anfrage ging. Wird zur Bildung der links
-        verwendet
-      schema:
-        type: string
-        format: url
-        example: api.lbbw.de
-    x-forwarded-prefix:
-      name: x-forwarded-prefix
-      in: header
-      description: >-
-        Pfad mit Domäne und Servicename aus dem API-Verzeichnis. Wird zur
-        Bildung der links verwendet.
-      schema:
-        type: string
-        example: /customer/disclosure-service
   securitySchemes:
     EsbAuthorization:
       type: http

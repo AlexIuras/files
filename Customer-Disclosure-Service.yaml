@@ -345,8 +345,10 @@ components:
       properties:
         id:
           type: string
-          description: Eindeutiger Schlüssel - customerId bzw PersNr. Optional wenn im RequestBody.
-          example: '5860-04-14-10.09.31.907617'
+          description: >-
+            Eindeutiger Schlüssel des GeKos bzw. der Verweigerung.
+            Optional wenn im RequestBody. Base64 encodierter ID-Timestamp.
+          example: MDAwMS0wMS0wMS0wMC4wMC4wMC4wMDAwMDA
         type:
           type: string
           description: Objekt Type
@@ -358,10 +360,6 @@ components:
           required:
           - dateOfRefusal
           properties:
-            refusalId:
-              type: string
-              description: ID des generischen Konstrukts bzw der Verweigerung. Optional wenn im RequestBody.
-              example: '2635-07-15-09.52.34.903320'
             dateOfRefusal:
               type: string
               description: >- 
@@ -381,7 +379,7 @@ components:
                 Meldungstext ob die Anlage durchgeführt wurde oder ob die Verweigerung existierte bereits. 
                 Optionales Feld wenn Refusal-Objekt als Eingabeparameter fungiert.
               example: 'Die Verweigerung existiert bereits.'
-# OL Pflicht schreiben  
+# OL Pflicht schreiben
     RequirementRequest:
       type: object
       required:
@@ -406,7 +404,7 @@ components:
       properties:
         id:
           type: string
-          description: Eindeutiger Schlüssel der Offenlegungspflichtkennzeichen-Daten
+          description: KUSA
           example: '43525748'
         type:
           type: string

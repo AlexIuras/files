@@ -1,6 +1,6 @@
 openapi: 3.0.1
 info:
-  title: Disclosure-Service API Description
+  title: Disclosure-Service
   description: >
 
     # Beschreibung
@@ -9,8 +9,7 @@ info:
 
     # Rahmenbedingungen
     
-    Welche Rahmenbedingungen sind zu beachten, damit der Service genutzt werden
-    kann, insbesondere
+    Welche Rahmenbedingungen sind zu beachten, damit der Service genutzt werden kann, insbesondere:
       - Rechte: Der aufrufende User muss in ESBConfig die Berechtigung zum Aufruf von Service 'DynsBA'/Domäne OSP besitzen. 
         Zur Abfrage von Daten zu Mitarbeitern (Organkennzeichen gesetzt) benötigt der zugeordnete SUSer das Privileg 'MITARBEITER'. 
         Falls das Zugriffsschutz-Kennzeichen einer gesuchten Personen gesetzt ist
@@ -38,8 +37,7 @@ info:
     # Offene Detailpunkte
     
     Welche Ausprägungen bilden wir da ab? Mögliche Quellen: Statusausprägungen,
-    die ApiOmat im Zuge Versionierung an bietet und/oder Packaging Konzepte z.B.
-    für Python
+    die ApiOmat im Zuge Versionierung an bietet und/oder Packaging Konzepte z.B. für Python.
     
     # Release-Notes
     
@@ -52,11 +50,12 @@ info:
     2020-07-09: v0.1.3   CustomerId als Query-Parameter. Tags und Endpoints umbenannt. Enum des Occurence eingefügt. Required geadded.
     2020-07-13: v0.1.4   Refuse -> Refusal. Example Refusal angepasst.
     2020-07-16: v0.1.5   Beschreibungen, Model-Tags geändert.
+    2020-07-17: v0.1.6   Links -> self in allen Responses entfernt da keine GET Operationen beauftragt.
 
     # Status
     
-    Version 0.1.5:   Beschreibungen, Model-Tags geändert..
-  version: 0.1.5
+    Version 0.1.6:   Refusals -> bereit für Fachliche Abnahme. Occurences und Requirements in Entwicklung.
+  version: 0.1.6
   termsOfService: /agb
   contact:
     name: Nicholas Trawniczek
@@ -284,6 +283,7 @@ security:
     appId: []
 components:
   schemas:
+# OL Pflicht schreiben  
     RequirementRequest:
       type: object
       required:
@@ -295,27 +295,18 @@ components:
       type: object
       required:
       - data
-      - links
       properties:
         data:
           $ref: '#/components/schemas/Requirement'
-        links:
-          type: object
-          properties:
-            self:
-              type: string
-              description: Link zu dieser Ressourcenabfrage
       example:
         data:
           - type: requirements
             id: '43525748'
             attributes:
-              disclosure_requirement: 'true'
-              exception_reason: Ausnahmetatbestand Grund
-              dateValidFrom: '2020-02-02T14:25:00.000+02:00'
-              dateValidTo: '2020-02-02T14:25:00.000+02:00'
-        links:
-          self: 'http://api.lbbw.de/customer/disclosure-service/requirements'
+              disclosureRequirement: 'true'
+              exceptionReason: Ausnahmetatbestand Grund
+              dateValidFrom: '2020-02-13'
+              dateValidTo: '2020-02-13'
     Requirement:
       type: object
       description: Datenmodell Offenlegungspflichtkennzeichen
@@ -337,105 +328,30 @@ components:
         attributes:
           type: object
           required:
-          - disclosure_requirement
-          - exception_reason
+          - disclosureRequirement
           - dateValidFrom
           - dateValidTo
+          - exceptionReason
           properties:
-            disclosure_requirement:
+            disclosureRequirement:
               type: boolean
               description: Offenlegungspflicht Aktiv-KZ Ja-Aktiv/Nein-Inaktiv.
               example: true
-            exception_reason:
+            dateValidFrom:
+              type: string
+              description: Datum gültig ab nach ISO8601 Format.
+              example: '2019-04-13'
+              format: date-time
+            dateValidTo:
+              type: string
+              description: Datum gültig bis nach ISO8601 Format.
+              example: '2019-04-13'
+              format: date-time
+            exceptionReason:
               type: string
               description: Ausnahmetatbestand Grund
               example: Ausnahmetatbestand_Grund
-            dateValidFrom:
-              type: string
-              description: Datum gültig ab.
-              example: '2019-04-12T14:25:00.000+02:00'
-              format: date-time
-            dateValidTo:
-              type: string
-              description: Datum gültig bis.
-              example: '2019-04-12T14:25:00.000+02:00'
-              format: date-time
-    RefusalRequest:
-      type: object
-      required:
-      - data
-      properties:
-        data:
-          $ref: '#/components/schemas/Refusal'
-    RefusalResponse:
-      type: object
-      required:
-      - data
-      - links
-      properties:
-        data:
-          $ref: '#/components/schemas/Refusal'
-        links:
-          type: object
-          properties:
-            self:
-              type: string
-              description: Link zu dieser Ressourcenabfrage
-      example:
-        data:
-          - type: refusals
-            id: '43525748'
-            attributes:
-              refusalId: '2635-07-15-09.52.34.903320'
-              dateOfRefusal: '2020-02-02'
-              dateValidTo: '9999-12-31-23.59.59.999999'
-              messageText: 'Die Verweigerung existiert bereits.'
-        links:
-          self: 'http://api.lbbw.de/customer/disclosure-service/refusals'
-    Refusal:
-      type: object
-      description: Refusal-Datenmodell.
-      required:
-      - id
-      - type
-      - attributes
-      properties:
-        id:
-          type: string
-          description: Eindeutiger Schlüssel - customerId oder PersNr. Optional wenn im RequestBody.
-          example: '43525748'
-        type:
-          type: string
-          description: Objekt Type
-          enum:
-            - refusals
-          example: refusals
-        attributes:
-          type: object
-          required:
-          - dateOfRefusal
-          properties:
-            refusalId:
-              type: string
-              description: ID des generischen Konstrukts. Optional wenn im RequestBody.
-              example: '2635-07-15-09.52.34.903320'
-            dateOfRefusal:
-              type: string
-              description: Verweigerung erfolgt am Datum. Mussfeld wenn im RequestBody.
-              example: '2020-02-02'
-              format: date-time
-            dateValidTo:
-              type: string
-              description: Verweigerung gültig bis. Optional im RequestBody.
-              example: '9999-12-31-23.59.59.999999'
-              format: date-time
-            messageText:
-              type: string
-              description: >- 
-                Meldungstext ob die Anlage durchgeführt wurde 
-                oder ob die Verweigerung existierte bereits. 
-                Optionales Feld wenn Refusal-Objekt als Eingabeparameter fungiert.
-              example: 'Die Verweigerung existiert bereits.'
+# OL Erfolgt - Unterlagen eingereicht
     OccurenceRequest:
       type: object
       required:
@@ -447,25 +363,16 @@ components:
       type: object
       required:
       - data
-      - links
       properties:
         data:
           $ref: '#/components/schemas/Occurence'
-        links:
-          type: object
-          properties:
-            self:
-              type: string
-              description: Link zu dieser Ressourcenabfrage
       example:
         data:
           - type: occurences
             id: '43525748'
             attributes:
-              date: '2020-02-02T14:25:00.000'
-              document_type: '0001'
-        links:
-          self: 'http://api.lbbw.de/customer/disclosure-service/occurences'
+              date: '2020-02-13'
+              documentType: '0001'
     Occurence:
       type: object
       description: Datenmodell Offenlegungspflicht-erfolgt.
@@ -488,20 +395,90 @@ components:
           type: object
           required:
           - date
-          - document_type
+          - documentType
           properties:
             date:
               type: string
-              description: Offenlegung erfolgt am.
-              example: '2019-04-12T14:25:00.000+02:00'
+              description: Datum an dem die Offenlegung erfolgt ist. Nach ISO8601 Format.
+              example: '2019-04-13'
               format: date-time
-            document_type:
+            documentType:
               description: Unterlagen Art wie im KWG18_UNTERL_DEF_ANLEGEN beschrieben.
               type: string
               enum: ['0001','0002','0003','0004','0005','0006','0007','0008','0009','0010',
                      '0011','0012','0013','0014','0015','0016','0017','0018','0019','0020',
                      '0021','0022','0023','0024','0025','0026','0027']
               example: '0001'
+# OL Verweigerung schreiben   
+    RefusalRequest:
+      type: object
+      required:
+      - data
+      properties:
+        data:
+          $ref: '#/components/schemas/Refusal'
+    RefusalResponse:
+      type: object
+      required:
+      - data
+      properties:
+        data:
+          $ref: '#/components/schemas/Refusal'
+      example:
+        data:
+          - type: refusals
+            id: '43525748'
+            attributes:
+              refusalId: '2635-07-15-09.52.34.903320'
+              dateOfRefusal: '2020-02-02'
+              dateValidTo: '9999-12-31-23.59.59.999999'
+              messageText: 'Die Verweigerung existiert bereits.'
+    Refusal:
+      type: object
+      description: Refusal-Datenmodell.
+      required:
+      - id
+      - type
+      - attributes
+      properties:
+        id:
+          type: string
+          description: Eindeutiger Schlüssel - customerId bzw PersNr. Optional wenn im RequestBody.
+          example: '5860-04-14-10.09.31.907617'
+        type:
+          type: string
+          description: Objekt Type
+          enum:
+            - refusals
+          example: refusals
+        attributes:
+          type: object
+          required:
+          - dateOfRefusal
+          properties:
+            refusalId:
+              type: string
+              description: ID des generischen Konstrukts bzw der Verweigerung. Optional wenn im RequestBody.
+              example: '2635-07-15-09.52.34.903320'
+            dateOfRefusal:
+              type: string
+              description: >- 
+               Verweigerung erfolgt am Datum. Mussfeld wenn im RequestBody. 
+               Alleine das Datum und kein DateTime, werden als Ausgabe dargestellt
+               und als Eingabe akzeptiert. Datum nach ISO8601 Format.
+              example: '2020-02-02'
+              format: date-time
+            dateValidTo:
+              type: string
+              description: Verweigerung gültig bis Timestamp, nach ISO8601 Format. Optional im RequestBody.
+              example: '9999-12-31-23.59.59.999999'
+              format: date-time
+            messageText:
+              type: string
+              description: >- 
+                Meldungstext ob die Anlage durchgeführt wurde oder ob die Verweigerung existierte bereits. 
+                Optionales Feld wenn Refusal-Objekt als Eingabeparameter fungiert.
+              example: 'Die Verweigerung existiert bereits.'
     CustomerId:
       type: string
       maxLength: 10

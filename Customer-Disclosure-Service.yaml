@@ -39,7 +39,8 @@ info:
     Welche Ausprägungen bilden wir da ab? Mögliche Quellen: Statusausprägungen,
     die ApiOmat im Zuge Versionierung an bietet und/oder Packaging Konzepte z.B. für Python.
     
-    # Release-Notes  
+    # Release-Notes
+    
       - 2020-05-14: v0.9.71  Datumsformat ISO yyyy-MM-dd
       - 2020-05-28: v0.9.72  Typ Boolean eingefügt.
       - 2020-06-03: v0.9.73  RequestBodies jetzt mit schema:type: object
@@ -50,7 +51,7 @@ info:
       - 2020-07-13: v0.1.4   Refuse -> Refusal. Example Refusal angepasst.
       - 2020-07-16: v0.1.5   Beschreibungen, Model-Tags geändert.
       - 2020-07-17: v0.1.6   Links -> self in allen Responses entfernt da keine GET Operationen beauftragt. 
-      - 2020-07-17: v0.1.7   Examples, Response-Code-Texts, Model-Tags, Zeilenumbruch in Release-Notes Markdown angepasst.  
+      - 2020-07-17: v0.1.7   Examples, Response-Code-Texts, Model-Tags, Zeilenumbruch in Release-Notes Markdown angepasst.
 
     # Status
     
@@ -114,6 +115,9 @@ x-tagGroups:
       - requirements
       - occurences
       - refusals
+  - name: Health
+    tags:
+      - health
   - name: Models
     tags:
       - requirement_req_model
@@ -122,9 +126,6 @@ x-tagGroups:
       - refusal_resp_model
       - occurence_req_model
       - occurence_resp_model
-  - name: Health
-    tags:
-      - health
 paths:
   '/health':
     get:
@@ -177,13 +178,13 @@ paths:
               $ref: '#/components/schemas/RequirementRequest'
       responses:
         '200':
-          description: Requirement successfully put.
+          description: OK
           content:
             application/vnd.api+json:
               schema:
                 $ref: '#/components/schemas/RequirementResponse'
         '400':
-          description: Invalid Request
+          description: Bad Request
           content:
             application/vnd.api+json:
               schema:
@@ -216,13 +217,13 @@ paths:
               $ref: '#/components/schemas/RefusalRequest'
       responses:
         '200':
-          description: Refusal successfully put.
+          description: OK
           content:
             application/vnd.api+json:
               schema:
                 $ref: '#/components/schemas/RefusalResponse'
         '400':
-          description: Invalid Request
+          description: Bad Request
           content:
             application/vnd.api+json:
               schema:
@@ -252,13 +253,13 @@ paths:
               $ref: '#/components/schemas/OccurenceRequest'
       responses:
         '200':
-          description: Occurence successfully put.
+          description: OK
           content:
             application/vnd.api+json:
               schema:
                 $ref: '#/components/schemas/OccurenceResponse'
         '400':
-          description: Invalid Request
+          description: Bad Request
           content:
             application/vnd.api+json:
               schema:

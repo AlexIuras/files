@@ -288,20 +288,20 @@ components:
       type: object
       description: Offenlegungspflicht Erfolgt.
       required:
-      - id
       - type
       - attributes
       properties:
-        id:
-          type: string
-          description: Eindeutiger Schlüssel - customerId
-          example: '43525748'
         type:
           type: string
           description: Objekt Type
           enum:
             - occurences
           example: occurences
+        id:
+          type: string
+          description: >-
+            Eindeutiger Schlüssel. Optional wenn im RequestBody. Base64 encodierter ID-Timestamp.
+          example: MDAwMS0wMS0wMS0wMC4wMC4wMC4wMDAwMDA
         attributes:
           type: object
           required:
@@ -339,22 +339,21 @@ components:
       type: object
       description: Offenlegungspflicht Verweigerung.
       required:
-      - id
       - type
       - attributes
       properties:
-        id:
-          type: string
-          description: >-
-            Eindeutiger Schlüssel des GeKos bzw. der Verweigerung.
-            Optional wenn im RequestBody. Base64 encodierter ID-Timestamp.
-          example: MDAwMS0wMS0wMS0wMC4wMC4wMC4wMDAwMDA
         type:
           type: string
           description: Objekt Type
           enum:
             - refusals
           example: refusals
+        id:
+          type: string
+          description: >-
+            Eindeutiger Schlüssel des GeKos bzw. der Verweigerung.
+            Optional wenn im RequestBody. Base64 encodierter ID-Timestamp.
+          example: MDAwMS0wMS0wMS0wMC4wMC4wMC4wMDAwMDA
         attributes:
           type: object
           required:
@@ -398,20 +397,20 @@ components:
       type: object
       description: Offenlegungspflichtkennzeichen.
       required:
-      - id
       - type
       - attributes
       properties:
-        id:
-          type: string
-          description: KUSA
-          example: '43525748'
         type:
           type: string
           description: Objekt Type
           enum:
             - requirements
           example: requirements
+        id:
+          type: string
+          description: >-
+            Eindeutiger Schlüssel. Optional wenn im RequestBody. Base64 encodierter ID-Timestamp.
+          example: MDAwMS0wMS0wMS0wMC4wMC4wMC4wMDAwMDA
         attributes:
           type: object
           required:

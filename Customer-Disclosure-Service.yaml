@@ -284,13 +284,6 @@ components:
       properties:
         data:
           $ref: '#/components/schemas/Occurence'
-      example:
-        data:
-          - type: occurences
-            id: '43525748'
-            attributes:
-              date: '2020-02-13'
-              documentType: '0001'
     Occurence:
       type: object
       description: Datenmodell Offenlegungspflicht-erfolgt.

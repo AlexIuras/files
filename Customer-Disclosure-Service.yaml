@@ -286,7 +286,7 @@ components:
           $ref: '#/components/schemas/Occurence'
     Occurence:
       type: object
-      description: Datenmodell Offenlegungspflicht-erfolgt.
+      description: Offenlegungspflicht Erfolgt.
       required:
       - id
       - type
@@ -335,18 +335,9 @@ components:
       properties:
         data:
           $ref: '#/components/schemas/Refusal'
-      example:
-        data:
-          - type: refusals
-            id: '43525748'
-            attributes:
-              refusalId: '2635-07-15-09.52.34.903320'
-              dateOfRefusal: '2020-02-22'
-              dateValidTo: '9999-12-31T23:59:59.999+01:00'
-              messageText: 'Die Verweigerung existiert bereits.'
     Refusal:
       type: object
-      description: Refusal-Datenmodell.
+      description: Offenlegungspflicht Verweigerung.
       required:
       - id
       - type
@@ -405,18 +396,9 @@ components:
       properties:
         data:
           $ref: '#/components/schemas/Requirement'
-      example:
-        data:
-          - type: requirements
-            id: '43525748'
-            attributes:
-              disclosureRequirement: 'true'
-              exceptionReason: Ausnahmetatbestand Grund
-              dateValidFrom: '2020-02-13'
-              dateValidTo: '2020-02-13'
     Requirement:
       type: object
-      description: Datenmodell Offenlegungspflichtkennzeichen
+      description: Offenlegungspflichtkennzeichen.
       required:
       - id
       - type

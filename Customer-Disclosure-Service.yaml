@@ -79,15 +79,15 @@ servers:
   - url: 'https://esb.bp.entw.bank.lbbw.sko.de/customer/disclosure-service/'
     description: ESB-Service Integrationsumgebung
 tags:
-  - name: requirement_req_model
-    x-displayName: RequirementRequest
+  - name: occurence_req_model
+    x-displayName: OccurenceRequest
     description: >
-      <SchemaDefinition schemaRef="#/components/schemas/RequirementRequest"
+      <SchemaDefinition schemaRef="#/components/schemas/OccurenceRequest"
       showReadOnly={true} showWriteOnly={true} />
-  - name: requirement_resp_model
-    x-displayName: RequirementResponse
+  - name: occurence_resp_model
+    x-displayName: OccurenceResponse
     description: >
-      <SchemaDefinition schemaRef="#/components/schemas/RequirementResponse"
+      <SchemaDefinition schemaRef="#/components/schemas/OccurenceResponse"
       showReadOnly={true} showWriteOnly={true} />
   - name: refusal_req_model
     x-displayName: RefusalRequest
@@ -99,33 +99,33 @@ tags:
     description: >
       <SchemaDefinition schemaRef="#/components/schemas/RefusalResponse"
       showReadOnly={true} showWriteOnly={true} />
-  - name: occurence_req_model
-    x-displayName: OccurenceRequest
+  - name: requirement_req_model
+    x-displayName: RequirementRequest
     description: >
-      <SchemaDefinition schemaRef="#/components/schemas/OccurenceRequest"
+      <SchemaDefinition schemaRef="#/components/schemas/RequirementRequest"
       showReadOnly={true} showWriteOnly={true} />
-  - name: occurence_resp_model
-    x-displayName: OccurenceResponse
+  - name: requirement_resp_model
+    x-displayName: RequirementResponse
     description: >
-      <SchemaDefinition schemaRef="#/components/schemas/OccurenceResponse"
+      <SchemaDefinition schemaRef="#/components/schemas/RequirementResponse"
       showReadOnly={true} showWriteOnly={true} />
 x-tagGroups:
   - name: Disclosure
     tags:
-      - requirements
       - occurences
       - refusals
+      - requirements
   - name: Health
     tags:
       - health
   - name: Models
     tags:
-      - requirement_req_model
-      - requirement_resp_model
-      - refusal_req_model
-      - refusal_resp_model
       - occurence_req_model
       - occurence_resp_model
+      - refusal_req_model
+      - refusal_resp_model
+      - requirement_req_model
+      - requirement_resp_model
 paths:
   '/health':
     get:
@@ -153,16 +153,16 @@ paths:
                 $ref: '#/components/schemas/HealthErrorResponse'
               example:
                 status: "OUT_OF_SERVICE"
-  '/requirements':
+  '/occurences':
     put:
-      operationId: putRequirements
-      tags: [requirements]
-      summary: Aktualisiert und liefert Offenlegungspflichtkennzeichen-Daten zu einem Kunden-Datensatz zurück.
-      description: >- 
-        Das Prüfergebnis aus der Offenlegungspflicht ist nach OSP zu schreiben. 
-        Es sollen die Ergebnisse der Prüfung, ob der Kunde offenlegungspflichtig 
-        ist nach OSP-§18 Anwendung geschrieben werden. Entweder, der Kunde ist offenlegungspflichtig 
-        oder es wurden Ausnahmetatbestände ermittelt.
+      operationId: putOccurences
+      tags: [occurences]
+      summary: Aktualisiert und liefert Offenlegung-Erfolgt-Daten zu einem Kunden-Datensatz zurück.
+      description: >-
+        Es soll nach OSP geschrieben werden, wann die Offenlegung erfolgt ist.
+        Wenn der Berater die erforderlichen Unterlagen ausgewertet hat, 
+        erfasst der Berater in der GUI das Datum der Auswertung der Unterlagen und
+        die Art der eingereichten Dokumente. Diese Informationen sollen nach OSP geschrieben werden.
       parameters:
         - name: customerId
           in: query
@@ -175,14 +175,14 @@ paths:
         content:
           application/vnd.api+json:
             schema:
-              $ref: '#/components/schemas/RequirementRequest'
+              $ref: '#/components/schemas/OccurenceRequest'
       responses:
         '200':
           description: OK
           content:
             application/vnd.api+json:
               schema:
-                $ref: '#/components/schemas/RequirementResponse'
+                $ref: '#/components/schemas/OccurenceResponse'
         '400':
           description: Bad Request
           content:
@@ -228,16 +228,16 @@ paths:
             application/vnd.api+json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-  '/occurences':
+  '/requirements':
     put:
-      operationId: putOccurences
-      tags: [occurences]
-      summary: Aktualisiert und liefert Offenlegung-Erfolgt-Daten zu einem Kunden-Datensatz zurück.
-      description: >-
-        Es soll nach OSP geschrieben werden, wann die Offenlegung erfolgt ist.
-        Wenn der Berater die erforderlichen Unterlagen ausgewertet hat, 
-        erfasst der Berater in der GUI das Datum der Auswertung der Unterlagen und
-        die Art der eingereichten Dokumente. Diese Informationen sollen nach OSP geschrieben werden.
+      operationId: putRequirements
+      tags: [requirements]
+      summary: Aktualisiert und liefert Offenlegungspflichtkennzeichen-Daten zu einem Kunden-Datensatz zurück.
+      description: >- 
+        Das Prüfergebnis aus der Offenlegungspflicht ist nach OSP zu schreiben. 
+        Es sollen die Ergebnisse der Prüfung, ob der Kunde offenlegungspflichtig 
+        ist nach OSP-§18 Anwendung geschrieben werden. Entweder, der Kunde ist offenlegungspflichtig 
+        oder es wurden Ausnahmetatbestände ermittelt.
       parameters:
         - name: customerId
           in: query
@@ -250,14 +250,14 @@ paths:
         content:
           application/vnd.api+json:
             schema:
-              $ref: '#/components/schemas/OccurenceRequest'
+              $ref: '#/components/schemas/RequirementRequest'
       responses:
         '200':
           description: OK
           content:
             application/vnd.api+json:
               schema:
-                $ref: '#/components/schemas/OccurenceResponse'
+                $ref: '#/components/schemas/RequirementResponse'
         '400':
           description: Bad Request
           content:
@@ -269,74 +269,6 @@ security:
     appId: []
 components:
   schemas:
-# OL Pflicht schreiben  
-    RequirementRequest:
-      type: object
-      required:
-      - data
-      properties:
-        data:
-          $ref: '#/components/schemas/Requirement'
-    RequirementResponse:
-      type: object
-      required:
-      - data
-      properties:
-        data:
-          $ref: '#/components/schemas/Requirement'
-      example:
-        data:
-          - type: requirements
-            id: '43525748'
-            attributes:
-              disclosureRequirement: 'true'
-              exceptionReason: Ausnahmetatbestand Grund
-              dateValidFrom: '2020-02-13'
-              dateValidTo: '2020-02-13'
-    Requirement:
-      type: object
-      description: Datenmodell Offenlegungspflichtkennzeichen
-      required:
-      - id
-      - type
-      - attributes
-      properties:
-        id:
-          type: string
-          description: Eindeutiger Schlüssel der Offenlegungspflichtkennzeichen-Daten
-          example: '43525748'
-        type:
-          type: string
-          description: Objekt Type
-          enum:
-            - requirements
-          example: requirements
-        attributes:
-          type: object
-          required:
-          - disclosureRequirement
-          - dateValidFrom
-          - dateValidTo
-          - exceptionReason
-          properties:
-            disclosureRequirement:
-              type: boolean
-              description: Offenlegungspflicht Aktiv-KZ Ja-Aktiv/Nein-Inaktiv.
-              example: true
-            dateValidFrom:
-              type: string
-              description: Datum gültig ab nach ISO8601 Format.
-              example: '2019-04-13'
-              format: date-time
-            dateValidTo:
-              type: string
-              description: Datum gültig bis nach ISO8601 Format.
-              example: '2019-04-13'
-              format: date-time
-            exceptionReason:
-              type: string
-              description: Ausnahmetatbestand Grund
-              example: Ausnahmetatbestand_Grund
 # OL Erfolgt - Unterlagen eingereicht
     OccurenceRequest:
       type: object
@@ -465,6 +397,74 @@ components:
                 Meldungstext ob die Anlage durchgeführt wurde oder ob die Verweigerung existierte bereits. 
                 Optionales Feld wenn Refusal-Objekt als Eingabeparameter fungiert.
               example: 'Die Verweigerung existiert bereits.'
+# OL Pflicht schreiben  
+    RequirementRequest:
+      type: object
+      required:
+      - data
+      properties:
+        data:
+          $ref: '#/components/schemas/Requirement'
+    RequirementResponse:
+      type: object
+      required:
+      - data
+      properties:
+        data:
+          $ref: '#/components/schemas/Requirement'
+      example:
+        data:
+          - type: requirements
+            id: '43525748'
+            attributes:
+              disclosureRequirement: 'true'
+              exceptionReason: Ausnahmetatbestand Grund
+              dateValidFrom: '2020-02-13'
+              dateValidTo: '2020-02-13'
+    Requirement:
+      type: object
+      description: Datenmodell Offenlegungspflichtkennzeichen
+      required:
+      - id
+      - type
+      - attributes
+      properties:
+        id:
+          type: string
+          description: Eindeutiger Schlüssel der Offenlegungspflichtkennzeichen-Daten
+          example: '43525748'
+        type:
+          type: string
+          description: Objekt Type
+          enum:
+            - requirements
+          example: requirements
+        attributes:
+          type: object
+          required:
+          - disclosureRequirement
+          - dateValidFrom
+          - dateValidTo
+          - exceptionReason
+          properties:
+            disclosureRequirement:
+              type: boolean
+              description: Offenlegungspflicht Aktiv-KZ Ja-Aktiv/Nein-Inaktiv.
+              example: true
+            dateValidFrom:
+              type: string
+              description: Datum gültig ab nach ISO8601 Format.
+              example: '2019-04-13'
+              format: date-time
+            dateValidTo:
+              type: string
+              description: Datum gültig bis nach ISO8601 Format.
+              example: '2019-04-13'
+              format: date-time
+            exceptionReason:
+              type: string
+              description: Ausnahmetatbestand Grund
+              example: Ausnahmetatbestand_Grund
     CustomerId:
       type: string
       maxLength: 10

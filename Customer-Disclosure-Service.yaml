@@ -51,12 +51,13 @@ info:
       - 2020-07-13: v0.1.4   Refuse -> Refusal. Example Refusal angepasst.
       - 2020-07-16: v0.1.5   Beschreibungen, Model-Tags geändert.
       - 2020-07-17: v0.1.6   Links -> self in allen Responses entfernt da keine GET Operationen beauftragt. 
-      - 2020-07-17: v0.1.7   Examples, Response-Code-Texts, Model-Tags, Zeilenumbruch in Release-Notes Markdown angepasst.
+      - 2020-07-17: v0.1.7   Examples, Response-Code-Texts, Model-Tags, Zeilenumbruch in Release-Notes Markdown und id angepasst.
+      - 2020-07-20: v0.1.8   OL Erfolgt bzw. Unterlagen eingegangen -> Datenmodell an DynS Prozesse angepasst.
 
     # Status
     
-        Version 0.1.7:   Examples, Response-Code-Texts, Model-Tags, Zeilenumbruch in Release-Notes Markdown angepasst.
-  version: 0.1.7
+        Version 0.1.8:   OL Erfolgt bzw. Unterlagen eingegangen -> Datenmodell an DynS Prozesse angepasst.
+  version: 0.1.8
   termsOfService: /agb
   contact:
     name: Nicholas Trawniczek
@@ -109,13 +110,23 @@ tags:
     description: >
       <SchemaDefinition schemaRef="#/components/schemas/RequirementResponse"
       showReadOnly={true} showWriteOnly={true} />
+  - name: healthcheck_ok_model
+    x-displayName: HealthOkResponse
+    description: >
+      <SchemaDefinition schemaRef="#/components/schemas/HealthOkResponse"
+      showReadOnly={true} showWriteOnly={true} />
+  - name: healthcheck_err_model
+    x-displayName: HealthErrorResponse
+    description: >
+      <SchemaDefinition schemaRef="#/components/schemas/HealthErrorResponse"
+      showReadOnly={true} showWriteOnly={true} />      
 x-tagGroups:
   - name: Disclosure
     tags:
       - occurences
       - refusals
       - requirements
-  - name: Health
+  - name: Healthcheck
     tags:
       - health
   - name: Models
@@ -126,6 +137,7 @@ x-tagGroups:
       - refusal_resp_model
       - requirement_req_model
       - requirement_resp_model
+      - healthcheck_model
 paths:
   '/health':
     get:
@@ -162,7 +174,8 @@ paths:
         Es soll nach OSP geschrieben werden, wann die Offenlegung erfolgt ist.
         Wenn der Berater die erforderlichen Unterlagen ausgewertet hat, 
         erfasst der Berater in der GUI das Datum der Auswertung der Unterlagen und
-        die Art der eingereichten Dokumente. Diese Informationen sollen nach OSP geschrieben werden.
+        die Art der eingereichten Dokumente sowie Freitext dazu. 
+        Diese Informationen sollen nach OSP geschrieben werden.
       parameters:
         - name: customerId
           in: query
@@ -286,7 +299,9 @@ components:
           $ref: '#/components/schemas/Occurence'
     Occurence:
       type: object
-      description: Offenlegungspflicht Erfolgt.
+      description: >-
+        Offenlegung erfolgt und Unterlagen eingereicht/empfangen. 
+        Anhand des CustomerId, documentType und deadline wird eine Unterlage eindeutig identifiziert.
       required:
       - type
       - attributes
@@ -300,26 +315,52 @@ components:
         id:
           type: string
           description: >-
-            Eindeutiger Schlüssel. Optional wenn im RequestBody. Base64 encodierter ID-Timestamp.
+            Eindeutiger Schlüssel. Im DynS gibt es keinen einzelnen Feld der alleine das Id abbildet. 
+            Eine Unterlage wird anhand des CustomerId, documentType und deadline eindeutig identifiziert.
+            Optional wenn im RequestBody. Base64 encodierter ID-Timestamp.
           example: MDAwMS0wMS0wMS0wMC4wMC4wMC4wMDAwMDA
         attributes:
           type: object
           required:
-          - date
           - documentType
+          - deadline
+          - dateOfDisclosure
+          - textOfDisclosure
           properties:
-            date:
-              type: string
-              description: Datum an dem die Offenlegung erfolgt ist. Nach ISO8601 Format.
-              example: '2019-04-13'
-              format: date-time
             documentType:
-              description: Unterlagen Art wie im KWG18_UNTERL_DEF_ANLEGEN beschrieben.
+              type: integer
+              format: int32
+              description: >- 
+                Lfd. Nr. der Art einer im KWG18-Umfeld anzufordernden Unterlage (1 - 27).
+                Unterlagen Art wie im KWG18_UNTERL_DEF_ANLEGEN beschrieben, von 1 bis 27. Pflichtfeld.
+              example: 6
+            deadline:
               type: string
-              enum: ['0001','0002','0003','0004','0005','0006','0007','0008','0009','0010',
-                     '0011','0012','0013','0014','0015','0016','0017','0018','0019','0020',
-                     '0021','0022','0023','0024','0025','0026','0027']
-              example: '0001'
+              format: date
+              description: >- 
+                Stichtag einer anzufordernden Unterlage. Nach ISO8601 Format. 
+                In DynS wird nur das Datum alleine, ohne Zeit benötigt. Pflichtfeld.
+              example: '2019-12-31'
+            dateOfDisclosure:
+              type: string
+              format: date-time
+              description: >- 
+                Datum der Auswertung und Prüfung der Unterlage. Nach ISO8601 Format.
+                Datum an dem die Unterlage geprüft ist und die Offenlegung erfolgt ist.
+                In DynS wird nur das Datum alleine, ohne Zeit geschrieben.
+              example: '2019-11-30'
+            textOfDisclosure:
+              type: string
+              description: >- 
+                Angabe zur Auswertung der Unterlage (Freitext), meistens Name des Bearbeiters. Pflichtfeld.
+              example: 'Heribert Alpmann'
+            messageText:
+              type: string
+              description: >- 
+                Meldungstext ob die Änderung der Unterlage durchgeführt wurde oder nicht. 
+                Optionales Feld wenn Refusal-Objekt als Eingabeparameter fungiert. 
+                Beispiel wenn Empfangs-Datum bereits so gesetzt ist:
+              example: 'MGK18500W039 - Es wurden keine Aenderungen durchgefuehrt.'
 # OL Verweigerung schreiben   
     RefusalRequest:
       type: object
@@ -361,17 +402,17 @@ components:
           properties:
             dateOfRefusal:
               type: string
+              format: date
               description: >- 
                Verweigerung erfolgt am Datum. Mussfeld wenn im RequestBody. 
                Alleine das Datum und kein DateTime, werden als Ausgabe dargestellt
                und als Eingabe akzeptiert. Datum nach ISO8601 Format.
               example: '2020-02-22'
-              format: date-time
             dateValidTo:
               type: string
+              format: date-time
               description: Verweigerung gültig bis Timestamp, nach ISO8601 Format. Optional im RequestBody.
               example: '9999-12-31T23:59:59.999+01:00'
-              format: date-time
             messageText:
               type: string
               description: >- 

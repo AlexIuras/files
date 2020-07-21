@@ -53,11 +53,12 @@ info:
       - 2020-07-17: v0.1.6   Links -> self in allen Responses entfernt da keine GET Operationen beauftragt. 
       - 2020-07-17: v0.1.7   Examples, Response-Code-Texts, Model-Tags, Zeilenumbruch in Release-Notes Markdown und id angepasst.
       - 2020-07-20: v0.1.8   OL Erfolgt bzw. Unterlagen eingegangen -> Datenmodell an DynS Prozesse angepasst.
+      - 2020-07-21: v0.1.9   refusalId wieder eingeführt. putOccurences für das Review bereit.
 
     # Status
     
-        Version 0.1.8:   OL Erfolgt bzw. Unterlagen eingegangen -> Datenmodell an DynS Prozesse angepasst.
-  version: 0.1.8
+        Version 0.1.9:   refusalId wieder eingeführt. putOccurences für das Review bereit.
+  version: 0.1.9
   termsOfService: /agb
   contact:
     name: Nicholas Trawniczek
@@ -137,7 +138,8 @@ x-tagGroups:
       - refusal_resp_model
       - requirement_req_model
       - requirement_resp_model
-      - healthcheck_model
+      - healthcheck_ok_model
+      - healthcheck_err_model
 paths:
   '/health':
     get:
@@ -176,13 +178,6 @@ paths:
         erfasst der Berater in der GUI das Datum der Auswertung der Unterlagen und
         die Art der eingereichten Dokumente sowie Freitext dazu. 
         Diese Informationen sollen nach OSP geschrieben werden.
-      parameters:
-        - name: customerId
-          in: query
-          description: KUSA
-          required: true
-          schema:
-            $ref: '#/components/schemas/CustomerId'
       requestBody:
         required: true
         content:
@@ -215,13 +210,6 @@ paths:
         Technische Beschreibung als erstes wird geprüft ob der Kunde bereits eine Verweigerung hat, 
         wenn ja -> diese wird ausgelesen und messageText: Verweigerung existiert bereits.
         wenn nein -> Verweigerung wird angelegt und danach ausgelesen, messageText: Verweigerung wurde angelegt.
-      parameters:
-        - name: customerId
-          in: query
-          description: KUSA
-          required: true
-          schema:
-            $ref: '#/components/schemas/CustomerId'
       requestBody:
         required: true
         content:
@@ -251,13 +239,6 @@ paths:
         Es sollen die Ergebnisse der Prüfung, ob der Kunde offenlegungspflichtig 
         ist nach OSP-§18 Anwendung geschrieben werden. Entweder, der Kunde ist offenlegungspflichtig 
         oder es wurden Ausnahmetatbestände ermittelt.
-      parameters:
-        - name: customerId
-          in: query
-          description: KUSA
-          required: true
-          schema:
-            $ref: '#/components/schemas/CustomerId'
       requestBody:
         required: true
         content:
@@ -301,29 +282,31 @@ components:
       type: object
       description: >-
         Offenlegung erfolgt und Unterlagen eingereicht/empfangen. 
-        Anhand des CustomerId, documentType und deadline wird eine Unterlage eindeutig identifiziert.
+        Anhand des CustomerId, documentType und documentDeadline wird eine Unterlage eindeutig identifiziert.
       required:
       - type
+      - id
       - attributes
       properties:
+        id:
+          type: string
+          description: >-
+            KUSA. Eindeutiger Schlüssel des Kunden.
+            Im DynS gibt es keinen einzelnen Feld der alleine das Id abbildet. 
+            Eine Unterlage wird anhand des CustomerId, documentType und documentDeadline eindeutig identifiziert.
+            Optional wenn im RequestBody. Base64 encodierter ID-Timestamp.
+          example: '630188'
         type:
           type: string
           description: Objekt Type
           enum:
             - occurences
           example: occurences
-        id:
-          type: string
-          description: >-
-            Eindeutiger Schlüssel. Im DynS gibt es keinen einzelnen Feld der alleine das Id abbildet. 
-            Eine Unterlage wird anhand des CustomerId, documentType und deadline eindeutig identifiziert.
-            Optional wenn im RequestBody. Base64 encodierter ID-Timestamp.
-          example: MDAwMS0wMS0wMS0wMC4wMC4wMC4wMDAwMDA
         attributes:
           type: object
           required:
           - documentType
-          - deadline
+          - documentDeadline
           - dateOfDisclosure
           - textOfDisclosure
           properties:
@@ -334,7 +317,7 @@ components:
                 Lfd. Nr. der Art einer im KWG18-Umfeld anzufordernden Unterlage (1 - 27).
                 Unterlagen Art wie im KWG18_UNTERL_DEF_ANLEGEN beschrieben, von 1 bis 27. Pflichtfeld.
               example: 6
-            deadline:
+            documentDeadline:
               type: string
               format: date
               description: >- 
@@ -343,24 +326,17 @@ components:
               example: '2019-12-31'
             dateOfDisclosure:
               type: string
-              format: date-time
+              format: date
               description: >- 
                 Datum der Auswertung und Prüfung der Unterlage. Nach ISO8601 Format.
                 Datum an dem die Unterlage geprüft ist und die Offenlegung erfolgt ist.
-                In DynS wird nur das Datum alleine, ohne Zeit geschrieben.
+                In DynS wird nur das Datum alleine, ohne Zeit geschrieben. Pflichtfeld.
               example: '2019-11-30'
             textOfDisclosure:
               type: string
               description: >- 
                 Angabe zur Auswertung der Unterlage (Freitext), meistens Name des Bearbeiters. Pflichtfeld.
               example: 'Heribert Alpmann'
-            messageText:
-              type: string
-              description: >- 
-                Meldungstext ob die Änderung der Unterlage durchgeführt wurde oder nicht. 
-                Optionales Feld wenn Refusal-Objekt als Eingabeparameter fungiert. 
-                Beispiel wenn Empfangs-Datum bereits so gesetzt ist:
-              example: 'MGK18500W039 - Es wurden keine Aenderungen durchgefuehrt.'
 # OL Verweigerung schreiben   
     RefusalRequest:
       type: object
@@ -380,26 +356,32 @@ components:
       type: object
       description: Offenlegungspflicht Verweigerung.
       required:
+      - id
       - type
       - attributes
       properties:
+        id:
+          type: string
+          description: >-
+            Im Request: KUSA. Eindeutiger Schlüssel des Kunden.
+          example: '630188'
         type:
           type: string
           description: Objekt Type
           enum:
             - refusals
           example: refusals
-        id:
-          type: string
-          description: >-
-            Eindeutiger Schlüssel des GeKos bzw. der Verweigerung.
-            Optional wenn im RequestBody. Base64 encodierter ID-Timestamp.
-          example: MDAwMS0wMS0wMS0wMC4wMC4wMC4wMDAwMDA
         attributes:
           type: object
           required:
           - dateOfRefusal
           properties:
+            refusalId:
+              type: string
+              description: >-
+                Base64 encodierter ID-Timestamp der Verweigerung. 
+                Eindeutiger Schlüssel des GeKos bzw. der Verweigerung.
+              example: MDAwMS0wMS0wMS0wMC4wMC4wMC4wMDAwMDA
             dateOfRefusal:
               type: string
               format: date
@@ -439,6 +421,7 @@ components:
       description: Offenlegungspflichtkennzeichen.
       required:
       - type
+      - id
       - attributes
       properties:
         type:
@@ -450,7 +433,7 @@ components:
         id:
           type: string
           description: >-
-            Eindeutiger Schlüssel. Optional wenn im RequestBody. Base64 encodierter ID-Timestamp.
+            Eindeutiger Schlüssel. Base64 encodierter ID-Timestamp.
           example: MDAwMS0wMS0wMS0wMC4wMC4wMC4wMDAwMDA
         attributes:
           type: object

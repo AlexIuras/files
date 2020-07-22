@@ -53,11 +53,11 @@ info:
       - 2020-07-17: v0.1.6   Links -> self in allen Responses entfernt da keine GET Operationen beauftragt. 
       - 2020-07-17: v0.1.7   Examples, Response-Code-Texts, Model-Tags, Zeilenumbruch in Release-Notes Markdown und id angepasst.
       - 2020-07-20: v0.1.8   OL Erfolgt bzw. Unterlagen eingegangen -> Datenmodell an DynS Prozesse angepasst.
-      - 2020-07-21: v0.1.9   refusalId wieder eingeführt. putOccurences für das Review bereit.
+      - 2020-07-21: v0.1.9   id ist jetzt der frühere refusalId. customerId in den Payloads.
 
     # Status
     
-        Version 0.1.9:   refusalId wieder eingeführt. putOccurences für das Review bereit.
+        Version 0.1.9:   id ist jetzt der frühere refusalId. customerId in den Payloads.
   version: 0.1.9
   termsOfService: /agb
   contact:
@@ -285,17 +285,8 @@ components:
         Anhand des CustomerId, documentType und documentDeadline wird eine Unterlage eindeutig identifiziert.
       required:
       - type
-      - id
       - attributes
       properties:
-        id:
-          type: string
-          description: >-
-            KUSA. Eindeutiger Schlüssel des Kunden.
-            Im DynS gibt es keinen einzelnen Feld der alleine das Id abbildet. 
-            Eine Unterlage wird anhand des CustomerId, documentType und documentDeadline eindeutig identifiziert.
-            Optional wenn im RequestBody. Base64 encodierter ID-Timestamp.
-          example: '630188'
         type:
           type: string
           description: Objekt Type
@@ -305,11 +296,14 @@ components:
         attributes:
           type: object
           required:
+          - customerId
           - documentType
           - documentDeadline
           - dateOfDisclosure
           - textOfDisclosure
           properties:
+            customerId:
+              $ref: '#/components/schemas/CustomerId'
             documentType:
               type: integer
               format: int32
@@ -356,15 +350,15 @@ components:
       type: object
       description: Offenlegungspflicht Verweigerung.
       required:
-      - id
       - type
       - attributes
       properties:
         id:
           type: string
           description: >-
-            Im Request: KUSA. Eindeutiger Schlüssel des Kunden.
-          example: '630188'
+                Base64 encodierter ID-Timestamp der Verweigerung. 
+                Eindeutiger Schlüssel des GeKos bzw. der Verweigerung.
+          example: MDAwMS0wMS0wMS0wMC4wMC4wMC4wMDAwMDA
         type:
           type: string
           description: Objekt Type
@@ -374,14 +368,11 @@ components:
         attributes:
           type: object
           required:
+          - customerId
           - dateOfRefusal
           properties:
-            refusalId:
-              type: string
-              description: >-
-                Base64 encodierter ID-Timestamp der Verweigerung. 
-                Eindeutiger Schlüssel des GeKos bzw. der Verweigerung.
-              example: MDAwMS0wMS0wMS0wMC4wMC4wMC4wMDAwMDA
+            customerId:
+              $ref: '#/components/schemas/CustomerId'
             dateOfRefusal:
               type: string
               format: date
@@ -421,7 +412,6 @@ components:
       description: Offenlegungspflichtkennzeichen.
       required:
       - type
-      - id
       - attributes
       properties:
         type:
@@ -430,19 +420,17 @@ components:
           enum:
             - requirements
           example: requirements
-        id:
-          type: string
-          description: >-
-            Eindeutiger Schlüssel. Base64 encodierter ID-Timestamp.
-          example: MDAwMS0wMS0wMS0wMC4wMC4wMC4wMDAwMDA
         attributes:
           type: object
           required:
+          - customerId
           - disclosureRequirement
           - dateValidFrom
           - dateValidTo
           - exceptionReason
           properties:
+            customerId:
+              $ref: '#/components/schemas/CustomerId'
             disclosureRequirement:
               type: boolean
               description: Offenlegungspflicht Aktiv-KZ Ja-Aktiv/Nein-Inaktiv.
@@ -463,9 +451,11 @@ components:
               example: Ausnahmetatbestand_Grund
     CustomerId:
       type: string
+      description: >-
+        KUSA. Eindeutiger Schlüssel des Kunden.
       maxLength: 10
       pattern: '\d{1,10}'
-      example: '43525748'
+      example: '630188'
     ErrorResponse:
       type: object
       properties:

@@ -112,11 +112,13 @@ tags:
     description: >
       <SchemaDefinition schemaRef="#/components/schemas/RequirementResponse"
       showReadOnly={true} showWriteOnly={true} />
-  - name: healthcheck_ok_model
+  - name: health_model
     x-displayName: Health
-    description: >
-      <SchemaDefinition schemaRef="#/components/schemas/HealthOkResponse"
+    description: |
+      <SchemaDefinition schemaRef="#/components/schemas/HealthOkResponse" 
       showReadOnly={true} showWriteOnly={true} />
+      <SchemaDefinition schemaRef="#/components/schemas/HealthErrorResponse" 
+      showReadOnly={true} showWriteOnly={true} />      
 x-tagGroups:
   - name: Disclosure
     tags:
@@ -135,6 +137,7 @@ x-tagGroups:
       - requirement_req_model
       - requirement_resp_model
       - healthcheck_ok_model
+      - healthcheck_err_model
 paths:
   '/occurences':
     put:

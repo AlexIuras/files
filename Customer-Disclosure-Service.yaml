@@ -54,11 +54,12 @@ info:
       - 2020-07-17: v0.1.7   Examples, Response-Code-Texts, Model-Tags, Zeilenumbruch in Release-Notes Markdown und id angepasst.
       - 2020-07-20: v0.1.8   OL Erfolgt bzw. Unterlagen eingegangen -> Datenmodell an DynS Prozesse angepasst.
       - 2020-07-21: v0.1.9   id ist jetzt der frühere refusalId. customerId in den Payloads.
+      - 2020-08-10: v0.1.10  Put Refusals zu Post Refusals umgestellt. Zusätzliche Felder ins Refusal Modell.
 
     # Status
     
-        Version 0.1.9:   id ist jetzt der frühere refusalId. customerId in den Payloads.
-  version: 0.1.9
+        Version v0.1.10  Put Refusals zu Post Refusals umgestellt. Zusätzliche Felder ins Refusal Modell.
+  version: v0.1.10
   termsOfService: /agb
   contact:
     name: Nicholas Trawniczek
@@ -141,32 +142,6 @@ x-tagGroups:
       - healthcheck_ok_model
       - healthcheck_err_model
 paths:
-  '/health':
-    get:
-      security: []
-      tags: [health]
-      summary: Allgemeiner Healthcheck.
-      description: >-
-        Dieser muss ohne Autorisierung aufrufbar sein. Die Minimalanforderung ist ein {status: 'UP'} 
-        wenn der Service gerufen werden kann.
-      operationId: getHealthStatus
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/HealthOkResponse"
-              example:
-                status: "UP"
-        '503':
-          description: Error - Meldung nur möglich, wenn Prüfung ausserhalb des Service erfolgt.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HealthErrorResponse'
-              example:
-                status: "OUT_OF_SERVICE"
   '/occurences':
     put:
       operationId: putOccurences
@@ -198,18 +173,18 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
   '/refusals':
-    put:
-      operationId: putRefusals
+    post:
+      operationId: postRefusals
       tags: [refusals]
-      summary: Aktualisiert und liefert Offenlegungspflicht-verweigert-Daten zu einem Kunden-Datensatz zurück.
+      summary: Verweigerungen werden zu einem Kunden-Datensatz angelegt und ausgelesen zurück gemeldet.
       description: >-
         Es soll nach OSP ein GEKO geschrieben werden, wenn i.R. der Anforderung von Dokumenten der Kunde 
-        die Einreichung generell verweigert. Verweigert der Kunde die Offenlegung seiner wirtschaftlichen Verhältnisse,
+        das Einreichen generell oder teilweise verweigert. Verweigert der Kunde die Offenlegung seiner wirtschaftlichen Verhältnisse,
         soll dies in OSP geschrieben werden. Dafür gibt es bisher kein Kennzeichen. 
         Es wurde ein neuer GeKo bzw. eine neue Rolle angelegt -> X-OFFLEG. 
-        Technische Beschreibung als erstes wird geprüft ob der Kunde bereits eine Verweigerung hat, 
-        wenn ja -> diese wird ausgelesen und messageText: Verweigerung existiert bereits.
-        wenn nein -> Verweigerung wird angelegt und danach ausgelesen, messageText: Verweigerung wurde angelegt.
+        Zu Jeder Verweigerung muss ein Verweigerungsdatum gesetzt sein.
+        Optional können noch weitere Parameter einer Verweigerung gesetzt werden:
+        Verweigerte Unterlage 1. Verweigerte Unterlage 2. Bemerkungen.
       requestBody:
         required: true
         content:
@@ -239,6 +214,11 @@ paths:
         Es sollen die Ergebnisse der Prüfung, ob der Kunde offenlegungspflichtig 
         ist nach OSP-§18 Anwendung geschrieben werden. Entweder, der Kunde ist offenlegungspflichtig 
         oder es wurden Ausnahmetatbestände ermittelt.
+        Verwendete fachliche DynS Prozesse: KWG18_PERSON_AENDERN und KWG18_PERSON_LESEN.
+        Wichtig: Die Operation kann entweder fürs aktivieren/deaktivieren der Offenlegungspflicht,
+        oder fürs setzen/löschen der Ausnahmeregelungen. 
+        Beim aktivieren OL Pflicht kann gleichzeitig eine Ausnahmeregelung gesetzt werden.
+        Für einen deaktivierten Kunden kann keine Ausnahmeregelung gesetzt werden.
       requestBody:
         required: true
         content:
@@ -258,6 +238,32 @@ paths:
             application/vnd.api+json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+  '/health':
+    get:
+      security: []
+      tags: [health]
+      summary: Allgemeiner Healthcheck.
+      description: >-
+        Dieser muss ohne Autorisierung aufrufbar sein. Die Minimalanforderung ist ein {status: 'UP'} 
+        wenn der Service gerufen werden kann.
+      operationId: getHealthStatus
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthOkResponse"
+              example:
+                status: "UP"
+        '503':
+          description: Error - Meldung nur möglich, wenn Prüfung ausserhalb des Service erfolgt.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthErrorResponse'
+              example:
+                status: "OUT_OF_SERVICE"
 security:
   - EsbAuthorization: []
     appId: []
@@ -281,8 +287,7 @@ components:
     Occurence:
       type: object
       description: >-
-        Offenlegung erfolgt und Unterlagen eingereicht/empfangen. 
-        Anhand des CustomerId, documentType und documentDeadline wird eine Unterlage eindeutig identifiziert.
+        Offenlegung erfolgt. Anhand des CustomerId, documentType und documentDeadline wird eine Unterlage eindeutig identifiziert.
       required:
       - type
       - attributes
@@ -300,7 +305,7 @@ components:
           - documentType
           - documentDeadline
           - dateOfDisclosure
-          - textOfDisclosure
+          - evaluatedBy
           properties:
             customerId:
               $ref: '#/components/schemas/CustomerId'
@@ -326,11 +331,17 @@ components:
                 Datum an dem die Unterlage geprüft ist und die Offenlegung erfolgt ist.
                 In DynS wird nur das Datum alleine, ohne Zeit geschrieben. Pflichtfeld.
               example: '2019-11-30'
-            textOfDisclosure:
+            evaluatedBy:
               type: string
               description: >- 
-                Angabe zur Auswertung der Unterlage (Freitext), meistens Name des Bearbeiters. Pflichtfeld.
+                Ausgewertet von. Name des Bearbeiters. Pflichtfeld.
               example: 'Heribert Alpmann'
+            messageText:
+              type: string
+              example: 'Das DynS Prozess ist erfolgreich durchgeführt.'
+              description: >- 
+                Meldungstext im Zusammenhang mit dem schreiben der eingegebenen Parametern.
+                Optionales Feld wenn im Request.
 # OL Verweigerung schreiben   
     RefusalRequest:
       type: object
@@ -348,7 +359,7 @@ components:
           $ref: '#/components/schemas/Refusal'
     Refusal:
       type: object
-      description: Offenlegungspflicht Verweigerung.
+      description: Offenlegungspflicht Verweigerung. Mindestens einen refusalDocument muss geschrieben werden.
       required:
       - type
       - attributes
@@ -370,6 +381,7 @@ components:
           required:
           - customerId
           - dateOfRefusal
+          - completeRefusal
           properties:
             customerId:
               $ref: '#/components/schemas/CustomerId'
@@ -377,21 +389,39 @@ components:
               type: string
               format: date
               description: >- 
-               Verweigerung erfolgt am Datum. Mussfeld wenn im RequestBody. 
-               Alleine das Datum und kein DateTime, werden als Ausgabe dargestellt
-               und als Eingabe akzeptiert. Datum nach ISO8601 Format.
+               Verweigerung erfolgt am Datum. Pflichtfeld.
+               Alleine das Datum, ohne Zeit, also kein DateTime sondern Date nach ISO8601 Format.
               example: '2020-02-22'
-            dateValidTo:
+            refusalDocument1:
+              type: integer
+              format: int32
+              description: >- 
+                Lfd. Nr. der Art einer im KWG18-Umfeld anzufordernden Unterlage (1 - 27).
+                Unterlagen Art wie im KWG18_UNTERL_DEF_ANLEGEN beschrieben, von 1 bis 27.
+              example: 6
+            refusalDocument2:
+              type: integer
+              format: int32
+              description: >- 
+                Lfd. Nr. der Art einer im KWG18-Umfeld anzufordernden Unterlage (1 - 27).
+                Unterlagen Art wie im KWG18_UNTERL_DEF_ANLEGEN beschrieben, von 1 bis 27.
+              example: 12
+            completeRefusal:
+              type: boolean
+              nullable: true
+              example: true
+              description: >- 
+                Komplettverweigerung ja/nein. Default wenn nicht gesendet: false.
+            refusalRemarks:
               type: string
-              format: date-time
-              description: Verweigerung gültig bis Timestamp, nach ISO8601 Format. Optional im RequestBody.
-              example: '9999-12-31T23:59:59.999+01:00'
+              description: >- 
+                Bemerkungen zur Verweigerung.
+              example: "Teilverweigerung"
             messageText:
               type: string
               description: >- 
-                Meldungstext ob die Anlage durchgeführt wurde oder ob die Verweigerung existierte bereits. 
-                Optionales Feld wenn Refusal-Objekt als Eingabeparameter fungiert.
-              example: 'Die Verweigerung existiert bereits.'
+                Meldungstext aus dem DynS-Prozess.
+              example: 'MGK16340N010 - Der Prozess wurde erfolgreich ausgefuehrt.'
 # OL Pflicht schreiben
     RequirementRequest:
       type: object
@@ -424,31 +454,49 @@ components:
           type: object
           required:
           - customerId
-          - disclosureRequirement
-          - dateValidFrom
-          - dateValidTo
-          - exceptionReason
           properties:
             customerId:
               $ref: '#/components/schemas/CustomerId'
             disclosureRequirement:
               type: boolean
-              description: Offenlegungspflicht Aktiv-KZ Ja-Aktiv/Nein-Inaktiv.
               example: true
-            dateValidFrom:
+              description: >- 
+                Offenlegungspflicht Aktiv-KZ Ja-Aktiv/Nein-Inaktiv. 
+                Für manche customerIds kann die Offenlegungspflicht nicht deaktiviert werden.
+                In solchen Fällen wird eine entsprechende Nachricht im MessageText geschrieben.
+                Name im DynS - UEBERWACH_AKTIV_KZ.
+            exceptionId:
+              type: integer
+              format: int32
+              example: 7
+              description: >- 
+                Lfd. Nr. der Ausnahmeregelung die zum Kunden gesetzt werden soll (1 - 50).
+                Ausnahmeregelungnummer wie im KWG18_AUSN_BESCHL_LESEN beschrieben, von 1 bis 50,
+                es können aber neue Ausnahmeregelungen von Administratoren eingefügt,
+                oder bestehende Ausnahmeregelungen deaktiviert werden. 
+                Nur Ausnahmeregelungen die aktiv sind sollten gesetzt werden.
+                Mit der Null - 0 - wird eine Ausnahmeregelung und die dazugehörigen von/bis Datümer gelöscht.
+                Wenn mit 0, die Ausnahme gelöscht wird, darf nicht gleichzeitig auch die Offenlegungspflicht umgestellt werden.
+                Bzw. nur bei einem aktiven Customer können Ausnahmeregelungen geändert werden.
+                Name im DynS - AUSN_BESCHL_NR.
+            exceptionValidFrom:
               type: string
-              description: Datum gültig ab nach ISO8601 Format.
+              format: date
               example: '2019-04-13'
-              format: date-time
-            dateValidTo:
+              description: >- 
+                Datum gültig ab nach ISO8601 Format. Ausnahmeregelung gültig ab. Name im DynS - AUSN_BESCHL_DATUM_VON.
+            exceptionValidTo:
               type: string
-              description: Datum gültig bis nach ISO8601 Format.
-              example: '2019-04-13'
-              format: date-time
-            exceptionReason:
+              format: date
+              example: '2099-04-13'
+              description: >- 
+                Datum gültig bis nach ISO8601 Format. Ausnahmeregelung gültig bis. Name im DynS - AUSN_BESCHL_DATUM_BIS.
+            messageText:
               type: string
-              description: Ausnahmetatbestand Grund
-              example: Ausnahmetatbestand_Grund
+              example: 'Inaktivierung bzw. Historisierung ist wegen SAMBA oder Rating nicht zulaessig.'
+              description: >- 
+                Meldungstext im Zusammenhang mit dem schreiben der eingegebenen Parametern.
+                Optionales Feld wenn im Request.
     CustomerId:
       type: string
       description: >-

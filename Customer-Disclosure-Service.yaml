@@ -115,10 +115,8 @@ tags:
   - name: health_model
     x-displayName: Health
     description: |
-      <SchemaDefinition schemaRef="#/components/schemas/HealthOkResponse" 
-      showReadOnly={true} showWriteOnly={true} />
-      <SchemaDefinition schemaRef="#/components/schemas/HealthErrorResponse" 
-      showReadOnly={true} showWriteOnly={true} />      
+      <SchemaDefinition schemaRef="#/components/schemas/HealthOkResponse" showReadOnly={true} showWriteOnly={true} />
+       <SchemaDefinition schemaRef="#/components/schemas/HealthErrorResponse" showReadOnly={true} showWriteOnly={true} />
 x-tagGroups:
   - name: Disclosure
     tags:

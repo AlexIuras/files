@@ -136,8 +136,7 @@ x-tagGroups:
       - refusal_resp_model
       - requirement_req_model
       - requirement_resp_model
-      - healthcheck_ok_model
-      - healthcheck_err_model
+      - health_model
 paths:
   '/occurences':
     put:

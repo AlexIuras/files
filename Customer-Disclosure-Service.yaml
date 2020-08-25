@@ -715,6 +715,7 @@ components:
     # SearchCustomers Models
     SearchRequest:
       type: object
+      description: SearchRequest enthält Suchparameter.
       required: 
       - data
       properties:
@@ -1108,6 +1109,7 @@ components:
     
     SearchResponse:
       type: object
+      description: SearchResponse enthält Suchtreffer.
       required:
       - data
       properties:

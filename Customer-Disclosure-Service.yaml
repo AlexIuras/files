@@ -142,10 +142,11 @@ tags:
     x-displayName: Das GvK-Datenmodell
     description: |
       <SchemaDefinition schemaRef="#/components/schemas/gvk" exampleRef="#/components/examples/gvk" showReadOnly={true} showWriteOnly={true} />
-  - name: hit_model
-    x-displayName: Das Treffer-Datenmodell
+  - name: search_models
+    x-displayName: Search
     description: |
-      <SchemaDefinition schemaRef="#/components/schemas/Hit" showReadOnly={true} showWriteOnly={true} />
+      <SchemaDefinition schemaRef="#/components/schemas/SearchRequest" showReadOnly={true} showWriteOnly={true} />
+       <SchemaDefinition schemaRef="#/components/schemas/SearchResponse" showReadOnly={true} showWriteOnly={true} />
   - name: health_model
     x-displayName: Das Health-Datenmodell
     description: |
@@ -167,8 +168,8 @@ x-tagGroups:
       - customer_model
       - address_model
       - gvk_model
+      - search_models
       - health_model
-      - hit_model
 security:
 - EsbAuthorization: []
   appId: []

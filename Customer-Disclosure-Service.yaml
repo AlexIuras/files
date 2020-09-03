@@ -91,9 +91,15 @@ info:
     
     ## V1.1.0
  
-    - 2020-07-30 Anforderungen aus KYC werden implementiert: 
+    - 2020-07-30 Anforderungen aus KYC werden implementiert:  
         - red_card, gekos_list, roles_list im getCustomerById hinzugefügt.
         - Neue Operation - */search - neue Modelle - Hit und SearchParams
+        - Path gvk nach gvks umbenennen
+        - Umbennenung/synchronisierung Felder mit PersonenSuche
+          * firstname / first_name
+          * name / last_name
+        - Modelnamen 
+          
     
     # Status
     Status des Service
@@ -128,27 +134,30 @@ tags:
     description: Kundeninformationen aus OSPlus
   - name: addresses
     description: Addressinformationen zum Kunden aus OSPlus
-  - name: gvk 
-    description: gvk des Kunden aus OSPlus
+  - name: gvks 
+    description: GvKs in denen der Kunden in OSPlus Teil ist
   - name: customer_model
-    x-displayName: Das Kunden-Datenmodell
+    x-displayName: Kunde
     description: |
       <SchemaDefinition schemaRef="#/components/schemas/Customer" exampleRef="#/components/examples/Customer" showReadOnly={true} showWriteOnly={true} />
   - name: address_model
-    x-displayName: Das Adressen-Datenmodell
+    x-displayName: Adresse
     description: |
       <SchemaDefinition schemaRef="#/components/schemas/Address" exampleRef="#/components/examples/Address" showReadOnly={true} showWriteOnly={true} />
   - name: gvk_model
-    x-displayName: Das GvK-Datenmodell
+    x-displayName: Gruppe verbundener Kunden (GvK)
     description: |
-      <SchemaDefinition schemaRef="#/components/schemas/gvk" exampleRef="#/components/examples/gvk" showReadOnly={true} showWriteOnly={true} />
+      <SchemaDefinition schemaRef="#/components/schemas/gvk_model" exampleRef="#/components/examples/gvk_model" showReadOnly={true} showWriteOnly={true} />
   - name: search_models
-    x-displayName: Search
+    x-displayName: Suche
     description: |
-      <SchemaDefinition schemaRef="#/components/schemas/SearchRequest" showReadOnly={true} showWriteOnly={true} />
-       <SchemaDefinition schemaRef="#/components/schemas/SearchResponse" showReadOnly={true} showWriteOnly={true} />
+        Datenmodell für einen Request
+        <SchemaDefinition schemaRef="#/components/schemas/SearchRequest" showReadOnly={true} showWriteOnly={true} />
+        
+        Datenmodell für einen Response 
+        <SchemaDefinition schemaRef="#/components/schemas/SearchResponse" showReadOnly={true} showWriteOnly={true} />
   - name: health_model
-    x-displayName: Das Health-Datenmodell
+    x-displayName: Health
     description: |
         <SchemaDefinition schemaRef="#/components/schemas/HealthCheckOkResponse" exampleRef="#/components/examples/HealthCheckOkResponse" showReadOnly={true} showWriteOnly={true} />
          <SchemaDefinition schemaRef="#/components/schemas/HealthCheckErrorResponse" exampleRef="#/components/examples/HealthCheckErrorResponse" showReadOnly={true} showWriteOnly={true} />
@@ -159,7 +168,7 @@ x-tagGroups:
     tags:
       - customers
       - addresses
-      - gvk
+      - gvks
   - name: HealthCheck
     tags:
       - health
@@ -286,13 +295,13 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-  /customers/{customer_id}/gvk:
+  /customers/{customer_id}/gvks:
     get:
       tags:
-        - gvk
-      summary: Abrufen der gvk-Daten
+        - gvks
+      summary: Abrufen der GvK-Daten
       description: Liefert die Liste aller GvK-Verbünde, in denen die eingegebene Person enthalten ist, zu einem Kunden-Datensatz zurück
-      operationId: getgvkforCustomer
+      operationId: getGvkForCustomer
       parameters:
         - name: customer_id
           in: path
@@ -364,12 +373,12 @@ components:
         attributes:
           type: object
           required:
-            - name
+            - last_name
             - red_card
             - gekos_list
             - roles_list
           properties:
-            title:
+            salutation:
               type: string
               maxLength: 30
               description: Bei der Ansprache einer Person zu verwendende Anrede. Erfassung über Schlüssel (SVZ=ANR) oder als freier Text möglich. Gespeichert wird nur Text.
@@ -382,7 +391,7 @@ components:
                 type: string
                 maxLength: 60
                 example: Sehr geehrter Kunde
-            name:
+            last_name:
               type: string
               description: (Nach-) Name des Kunden oder Firmenname
               example: "Jur. Person: XYZ GmbH & Co. KG; nat. Person: Müller"
@@ -390,7 +399,7 @@ components:
               type: string
               description: Namenszusatz
               example: "jr."
-            firstname:
+            first_name:
               type: string
               description: Vorname des Kunden (bei natürlichen Personen)
               example: Max
@@ -515,7 +524,7 @@ components:
                       example: "https://api.lbbw.de/customer/customer-service/customers/74352708/addresses"
                 data:
                   $ref: '#/components/schemas/AddressHeader'
-            gvk:
+            gvks:
               type: object
               properties:
                 links:
@@ -523,7 +532,7 @@ components:
                   properties:
                     related: 
                       type: string
-                      example: "https://api.lbbw.de/customer/customer-service/customers/74352708/gvk"
+                      example: "https://api.lbbw.de/customer/customer-service/customers/74352708/gvks"
         links:
           type: object
           properties:
@@ -665,30 +674,30 @@ components:
             - city
             - country
     GvkResponse:
-      description: Antwort zu gvk zu Kunde
+      description: Antwort zu GvK zu Kunde
       type: object
       properties:
         data:
           type: array
           items:
-            $ref: '#/components/schemas/gvk'
+            $ref: '#/components/schemas/gvk_model'
         links:
           type: object
           properties:
             self: 
               type: string
-              example: "https://api.lbbw.de/customer/customer-service/customers/74352708/gvk"
-    gvk: 
-      description: Datenmodell gvk
+              example: "https://api.lbbw.de/customer/customer-service/customers/74352708/gvks"
+    gvk_model: 
+      description: Datenmodell GvK
       type: object
       properties:
         type:
           type: string
-          enum: [gvk]
-          example: gvk
+          enum: [gvks]
+          example: gvks
         id:
           type: string
-          description: Eineindeutige ID der gvk
+          description: Eineindeutige ID der GvK
           example: 12345678
         attributes:
           type: object
@@ -721,7 +730,16 @@ components:
       properties:
         data:
           $ref: '#/components/schemas/SearchParams'
-
+    SearchResponse:
+      type: object
+      description: SearchResponse enthält Suchtreffer.
+      required:
+      - data
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Hit' #Treffer
     SearchParams:
       type: object
       description: Suchparameter setzen sich aus Suchoptionen und Suchfelder zusammen.
@@ -789,14 +807,14 @@ components:
                     Folgende spezielle BLZ sind den angegebenen Instituten zugeordnet: 
                     0=eigenes Institut; 00100000=LBS; 00200000=WPV; 
                     00300000=DEKA; 40050000=Depot; 50050000=Depot(HeLaBa)
-             second_name:
+             last_name:
                 type: string
                 maxLength: 48
                 example: "Jur. Person: XYZ GmbH & Co. KG; nat. Person: Müller" 
                 description: >-
                     S_NAME. Argument zur Angabe eines Nachnamens zum Suchen einer Person. Es kann auch eine Wildcard angegeben werden. 
                     Dann sind aber mindestens die ersten drei Zeichen anzugeben. Bei Sch sind mindestens vier Zeichen anzugeben.
-             second_name_addition:
+             last_name_addition::
                 type: string
                 maxLength: 45
                 example: "Jur. Person: XYZ GmbH & Co. KG; nat. Person: Müller" 
@@ -1106,17 +1124,6 @@ components:
         format: int32
         description: TREFFER_WLKT. Trefferwahrscheinlichkeit dieses Satzes der erweiterten phonetischen Namenssuche in Prozent.
         example: 100
-    
-    SearchResponse:
-      type: object
-      description: SearchResponse enthält Suchtreffer.
-      required:
-      - data
-      properties:
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/Hit' #Treffer
     Hit:
       type: object
       description: Suchtreffer.
@@ -1133,8 +1140,8 @@ components:
         attributes:
           type: object
           required:
-          - customerId
-          - name
+          - last_name
+          - customer_id
           properties:
             customer_id:
               $ref: '#/components/schemas/CustomerId'
@@ -1197,7 +1204,7 @@ components:
               maxLength: 1
               description: GESCHLECHT.   Geschlecht (weiblich/männlich). SVZ=GES.
               example: 
-            establishment_date:
+            date_of_founding:
               type: string
               format: date
               maxLength: 10
@@ -1254,12 +1261,12 @@ components:
               maxLength: 1
               description: LOESCH_KZ_PERS. Dieses Kennzeichen sagt aus, dass die Person logisch gelöscht wurde. Sie wird dann nicht mehr in S-KISS angezeigt.
               example: 
-            second_name:
+            last_name:
               type: string
               maxLength: 48
               description: NAME. Nachname einer natürlichen Person bzw. Name/Bezeichnung bei anderen Personenarten. 
               example: Mustername
-            second_name_addition:
+            last_name_addition::
               type: string
               maxLength: 45
               description: NAMENSERW. Teil der Namensbezeichnung, der außerhalb der Sortierbegriffe am Ende der Namensbezeichnung stehen soll.
@@ -1493,17 +1500,17 @@ components:
         relationships:
           addresses:
             related: https://api.lbbw.de/customer/customer-service/customers/74352708/addresses
-          gvk:
-            related: https://api.lbbw.de/customer/customer-service/customers/74352708/gvk
+          gvks:
+            related: https://api.lbbw.de/customer/customer-service/customers/74352708/gvks
         attributes:
           customer_type: "55"
-          firstname: FrM-VNAME0074352708
+          first_name: FrM-VNAME0074352708
           department_no: "4482559"
           name_extension: null
           date_of_birth: 1965-05-11
           economic_sector: "99999"
           date_of_founding: null
-          title: Herrn
+          salutation: Herrn
           consultant_rolename: Kd.betreuend
           legal_form: null
           is_spk_customer: false
@@ -1519,7 +1526,7 @@ components:
           closing_notation: ""
           customer_segment: B_RET_KSA_B2, FC_S_ETABLIE, KEYACCOUNTKD
           department_rolename: Kusa-Referat
-          name: J-ZNAME0074352708
+          last_name: J-ZNAME0074352708
           category:
             kusy: "200400209900099"
           taxconsultant_id: null
@@ -1545,7 +1552,7 @@ components:
           is_mailing_forbidden: false
         id: 0640-04-14-10.23.16.607617
         type: addresses
-    gvk:
+    gvk_model:
       value:
         kusa: "0035073497"
         name: "T-ZNAME0035073497"

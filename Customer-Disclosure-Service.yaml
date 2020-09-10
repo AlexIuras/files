@@ -1,581 +1,293 @@
 openapi: 3.0.1
-servers:
-  - url: https://api.bp.entw.bank.lbbw.sko.de/customer/customer-service/
-    description: Default server
-  - url: https://esb.bp.entw.bank.lbbw.sko.de/customer/customer-service/
-    description: LBBW-internal service origin address
 info:
-  description: |
- 
+  title: Associate-Service
+  description: >
+
     # Beschreibung
-    Der Customer-Service dient dem Auslesen von Kundendaten aus OSPlus.
-    ## Fachliche Zusatzinformation
-    Inklusive GEKOs, Adressen.
+    
+    Informationen bezüglich der Verbunde(Associates) sollen von OSP gelesen und nach OSP geschrieben werden.
+    
     ## Backendsystem
+    
     OneSystem Plus (OSP)
 
- 
     # Rahmenbedingungen
+    
     Welche Rahmenbedingungen sind zu beachten, damit der Service genutzt werden kann, insbesondere
-      - Rechte: Welche Rechte müssen vorhanden sein/beantragt werden, damit der Service genutzt werden kann
+      - Rechte: Der aufrufende User muss in ESBConfig die Berechtigung zum Aufruf von Service 'DynsBA'/Domäne OSP besitzen. 
+        Zur Abfrage von Daten zu Mitarbeitern (Organkennzeichen gesetzt) benötigt der zugeordnete SUSer das Privileg 'MITARBEITER' und 'VERBUND-Anlegen'. 
+        Falls das Zugriffsschutz-Kennzeichen einer gesuchten Personen gesetzt ist
+        (ZUGRIFFSSCHUTZ_KZ = 'J' ), benötigt der Anwender das Privileg 'ZUGRIFF-PERS'.
       - Verfügbarkeitszeiten: Wann ist der Service verfügbar?
       - Offene Detailpunkte:
       - Rechte: Im Zielzustand sollte mit der Vergabe des Rechts zur Nutzung des Service auch alle darunterliegenden Rechte, die erforderlich sind, angelegt werden (Service-Gedanke)
       - Serviceparameter: weitergehende Regelungen wie Quotas etc. sind nicht Teil der Swagger-Dokumentation, sondern Parameter im API-Gateway, werden dort gepflegt und publiziert
- 
+
     # Domäne/Subdomäne
-      - Der Service gehört zur API-Domäne 'Customer'
-      - Die Informationen werden aus den OSP Prozessgruppen 'PERSON', 'VERBUND', 'ANSCHRIFT', 'GENERISCHE_KONSTRUKTE', 'KUNDEN_UEBERSICHTEN' und 'SEGMENT' bezogen
- 
+      - Der Service ist der fachlichen Domäne 'Customer' zugeordnet.
+      - Die Informationen werden aus den OSP Prozessgruppen 'PERSON' und 'VERBUND' bezogen.
+
     # IT-System(-nummer)
       - Welchem IT-System ist der Service zugeordnet.
       - Der Service erbt von dem IT-System einige wesentliche Eigenschaften, insbesondere die Ownerschaften und das Schutz-Niveau, das der Service bietet.
       - Bei Composite Services über mehrere Systeme gibt i.d.R. ein System, das führend ist (Einstiegspunkt). Der Service wird diesem System zugeordnet.
- 
+      
     # Offene Detailpunkte
       - Welche Eigenschaften erbt der Service von dem System?
       - Werden diese Eigenschaften beim Service im API-Verzeichnis mit publiziert (Komfort) und/oder das IT-System verlinkt.
       - Wird die Systemnummer publiziert?
- 
+
     # Schutzniveau
+    
     Schutz-Niveau des IT-Systems oder geringer
- 
+    
     # Release-Notes
-    ## V0.1.0 
-    - Neues Model 'ContactDetail'
-    - Customer-Model ergänzen um die Felder aus Anforderungen zu DOP
     
-    - Filter-Parameter 'type' und 'offset' in getAddressesForCustomer
-    - Response bei Addresses ist ein Array
-    - Erweiterung Addresse um 'country' 
-                  
-    ## V0.1.1
-    - Erweiterung Model Customer um weitere Felder aus Anforderung 'Offenlegung'
-    - Erweiterung um Anforderung 'Anrede/Brieffanrede' aus DOP
-    - Definition des securityScheme 'ESBAutorization' mit BasicAuth 
-    - Header 'x-app-id' benannt
-    - Model 'ErrorResponse' für json:api-konforme ErrorResponse angelegt
-    
-    ## V0.1.2
-    
-    - securityScheme 'appId' definiert (statt headers)
-    - 'security' gilt für alle Ressourcen mit EsbAutorization + appId
-    - constraints für Eingabeparameter (z.B. String-Länge)
-    - 'kind' in 'type' umbenannt (in ContactDetails)
-    - Error-Response für alle 400er Fehler 
-    - Beispiel-Daten vervollständigt
-    - Release-Notes angelegt
-    
-    
-    ## V0.1.93 (Regression auf 'vor Produktion')
-    
-    - alle Responses als Model angelegt
-    - FIX: 'type' in schema der Responses fehlte
-    - Umbenennung has_ol_liability => is_disclosure_mandatory (fuer Knz. Offenlegunspflicht)
-    
-    ## V0.2.1 (Übernahme fachliche Version)
-    - Rolle zur Referatsnummer/Beraternummer => neue Felder
-    - neu: Kennzeichen Steuerberater Vollmacht liegt vor
-    - neu: KUSA Steuerberater
-    - neu: Kennzeichen Einwilligung - Elektronische Post an Emailadresse
-    - neu: Kennzeichen Einwilligung in die geschäftliche Kommunikation (via eMails) an Customer
-    
-    ## V1.0
-    
-    (alle Releas-Notes-einträge auf 0.1.x Versionen geändert)
-    
-    - 'KNE' auf 'GvK' umbenannt, das betrifft:
-      - operation
-      - tags
-      - links
-    
-    ## V1.1.0
- 
-    - 2020-07-30 Anforderungen aus KYC werden implementiert:  
-        - red_card, gekos_list, roles_list im getCustomerById hinzugefügt.
-        - Neue Operation - */search - neue Modelle - Hit und SearchParams
-        - Path gvk nach gvks umbenennen
-        - Umbennenung/synchronisierung Felder mit PersonenSuche
-          * firstname / first_name
-          * name / last_name
-        - Modelnamen 
-          
-    
+      - 2020-09-09: v0.0.1  Erster Entwurf der Operationen und Modellen.
+
     # Status
-    Status des Service
     
-    Der Service liefert wenn gegenüber ESB autorisiert bereits Daten der Person und Adressen aus OSP.
-    Die erweiterten Daten für Offenlegung sind Mocks
-    
-    Ohne Autorisierung wird ein kompletter Standard-Mock geliefert 
- 
-    # Offene Detailpunkte
-    Welche Ausprägungen bilden wir da ab? Mögliche Quellen: Statusausprägungen, die ApiOmat im Zuge Versionierung anbietet und/oder Packaging Konzepte z.B. für Python
- 
-  x-keywords: Kundendaten, Stammdaten, Kundenstammdaten, Verbünde, GeKo's, Verbundmerkmale,Sparkassenkunde,Steuerberater, Difin
-  version: "1.1.0"
-  title: Customer-Service
-  termsOfService: '/agb'
+        Version v0.0.1  Erster Entwurf der Operationen und Modellen.
+  version: v0.0.1
+  termsOfService: /agb
   contact:
-    name: 'Fachlich: Nicholas Trawniczek'
+    name: Nicholas Trawniczek
+    url: 'http://api.lbbw.de'
     email: Nicholas.Trawniczek@lbbw.de
-    url: https://api.lbbw.de
-  x-logo:
-    url: 'https://www.lbbw.de/res/images/logos/lbbw-logo-darkblue_131586_m.svg'
-    altText: LBBW logo
   license:
     name: Apache 2.0
     url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
+  x-keywords: >-
+    Verbund, Verbünde, Verbundmerkmale, Person, Personen, KYC
+  x-logo:
+    altText: LBBW logo
+    url: 'https://www.lbbw.de/res/images/logos/lbbw-logo-darkblue_131586_m.svg'
+servers:
+  - url: 'https://api.bp.entw.bank.lbbw.sko.de/customer/associate-service/'
+    description: API-Verzeichnis
+  - url: 'https://esb.bp.entw.bank.lbbw.sko.de/customer/associate-service/'
+    description: ESB-Service Integrationsumgebung
 externalDocs:
   description: Diese Dokumentation basiert auf der Open Api Specification V3.
   url: 'https://github.com/OAI/OpenAPI-Specification'
 tags:
-  - name: customers
-    description: Kundeninformationen aus OSPlus
-  - name: addresses
-    description: Addressinformationen zum Kunden aus OSPlus
-  - name: gvks 
-    description: GvKs in denen der Kunden in OSPlus Teil ist
-  - name: customer_model
-    x-displayName: Kunde
-    description: |
-      <SchemaDefinition schemaRef="#/components/schemas/Customer" exampleRef="#/components/examples/Customer" showReadOnly={true} showWriteOnly={true} />
-  - name: address_model
-    x-displayName: Adresse
-    description: |
-      <SchemaDefinition schemaRef="#/components/schemas/Address" exampleRef="#/components/examples/Address" showReadOnly={true} showWriteOnly={true} />
-  - name: gvk_model
-    x-displayName: Gruppe verbundener Kunden (GvK)
-    description: |
-      <SchemaDefinition schemaRef="#/components/schemas/gvk_model" exampleRef="#/components/examples/gvk_model" showReadOnly={true} showWriteOnly={true} />
-  - name: search_models
-    x-displayName: Suche
+  - name: post_associate_models
+    x-displayName: Create Associates
     description: |
         Datenmodell für einen Request
-        <SchemaDefinition schemaRef="#/components/schemas/SearchRequest" showReadOnly={true} showWriteOnly={true} />
+        <SchemaDefinition schemaRef="#/components/schemas/PostAssociatesRequest" showReadOnly={true} showWriteOnly={true} />
         Datenmodell für einen Response 
-        <SchemaDefinition schemaRef="#/components/schemas/SearchResponse" showReadOnly={true} showWriteOnly={true} />
+        <SchemaDefinition schemaRef="#/components/schemas/PostAssociatesResponse" showReadOnly={true} showWriteOnly={true} />
+  - name: put_associate_models
+    x-displayName: Extend Associates
+    description: |
+        Datenmodell für einen Request
+        <SchemaDefinition schemaRef="#/components/schemas/PutAssociatesRequest" showReadOnly={true} showWriteOnly={true} />
+        Datenmodell für einen Response 
+        <SchemaDefinition schemaRef="#/components/schemas/PutAssociatesResponse" showReadOnly={true} showWriteOnly={true} />
   - name: health_model
     x-displayName: Health
     description: |
-        <SchemaDefinition schemaRef="#/components/schemas/HealthCheckOkResponse" exampleRef="#/components/examples/HealthCheckOkResponse" showReadOnly={true} showWriteOnly={true} />
-         <SchemaDefinition schemaRef="#/components/schemas/HealthCheckErrorResponse" exampleRef="#/components/examples/HealthCheckErrorResponse" showReadOnly={true} showWriteOnly={true} />
-  - name: healthcheck
-    description: Healthcheck , Prüft ob der Service läuft
+      <SchemaDefinition schemaRef="#/components/schemas/HealthOkResponse" showReadOnly={true} showWriteOnly={true} />
+       <SchemaDefinition schemaRef="#/components/schemas/HealthErrorResponse" showReadOnly={true} showWriteOnly={true} />
 x-tagGroups:
-  - name: Customer
+  - name: Associate
     tags:
-      - customers
-      - addresses
-      - gvks
-  - name: HealthCheck
+      - associates
+  - name: Healthcheck
     tags:
       - health
   - name: Models
     tags:
-      - customer_model
-      - address_model
-      - gvk_model
-      - search_models
+      - post_associate_models
+      - put_associate_models
       - health_model
 security:
-- EsbAuthorization: []
-  appId: []
+  - EsbAuthorization: []
+    appId: []
 
 paths:
-  /customers/search:
+  /associates:
     post:
-      operationId: searchCustomers
-      tags: [customers]
-      summary: Die Operation bietet Suchmöglichkeiten für Personen an.
+      operationId: postAssociates
+      tags: [associates]
+      summary: Ein neuer Verbund mit Personen wird angelegt, die neue Verbund-ID wird zurück gemeldet.
       description: >-
-        Neben einer erweiterten phonetischen Namenssuche, die auf der Generierung und dem Abgleich phonetischer Codes beruht, werden 
-        Möglichkeiten der Abfrage (Suche z.B. ausschließlich über das Geburtsdatum / eine Telekommunikationsnummer / Straße-Ort-Kombination) angeboten.
-        Die Operation liefert eine Liste aller Personen aus dem Bestand von OSPlus, deren Eigenschaften mit den Eingabeparametern übereinstimmen.
-        Neben den inhaltlichen Kriterien, die zum Vergleich herangezogen werden, gibt es noch einige Kennzeichen, die die Art der Suche steuern:
-          - Alias-Kennzeichen: sollen Alias-Namen berücksichtigt werden?
-          - Historische-Anschriften-Kennzeichen: sollen historische Anschriften berücksichtigt werden?
-          - Historische-Namen-Kennzeichen: sollen historische Namen berücksichtigt werden?
-          - Hauptwohnsitz-Kennzeichen: sollen nur Hauptwohnsitze/Firmensitze berücksichtigt werden?
-          - Inaktiv-Kennzeichen: sollen inaktive Personen angezeigt werden?
-          - VIP-Kennzeichen: sollen Daten von geschützten Personen unkenntlich gemacht werden?
-        Mit der Selektionsart kann gesteuert werden, wie auf die Daten zugegriffen werden soll (SVZ PSU):
-          - ALIAS
-          - ERW.PHONETIK
-          - WILDCARD
+        Alle Personen, die zu einem Verbund gehören, sind mit ihrer Rolle dem Verbund zuzuordnen. 
+        DynS-Funktion: VERBUND_PERSONEN_ANLEGEN
       requestBody:
         required: true
         content:
           application/vnd.api+json:
             schema:
-              $ref: '#/components/schemas/SearchRequest'
+              $ref: '#/components/schemas/PostAssociatesRequest'
       responses:
-        '200':
+        '201':
           description: OK
           content:
             application/vnd.api+json:
               schema:
-                $ref: '#/components/schemas/SearchResponse'
+                $ref: '#/components/schemas/PostAssociatesResponse'
         '400':
           description: Bad Request
           content:
             application/vnd.api+json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-  /customers/{customer_id}:
-    get:
-      tags:
-        - customers
-      summary: Abrufen des Stammdatensatzes eines Kunden
-      description: Liefert einen Kunden aus OSPlus über die KUSA zurück
-      operationId: getCustomerById
-      parameters:
-        - name: customer_id
-          in: path
-          description: KUSA
-          required: true
-          schema:
-            $ref: '#/components/schemas/CustomerId'
+  /extendassociates:
+    put:
+      operationId: putAssociates
+      tags: [associates]
+      summary: Eine weitere Person soll in einen bestehenden Verbund aufgenommen werden.
+      description: >-
+        Eine Person ist mit ihrer Rolle dem Verbund zuzuordnen. DynS-Funktion: PERSONEN_ZU_VERBUND_HINZUF
+      requestBody:
+        required: true
+        content:
+          application/vnd.api+json:
+            schema:
+              $ref: '#/components/schemas/PutAssociatesRequest'
       responses:
         '200':
-          description: successful operation
+          description: OK
           content:
-            application/json:
+            application/vnd.api+json:
               schema:
-                $ref: '#/components/schemas/CustomerResponse'
-        '204':
-          description: Customer not found
+                $ref: '#/components/schemas/PutAssociatesResponse'
         '400':
-          description: Invalid ID supplied
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-  /customers/{customer_id}/addresses:
-    get:
-      tags:
-        - addresses
-      summary: Abrufen der Adressen eines Kunden
-      description: Liefert alle Adressen zurück, die einem Kunden in OSPlus zugeordnet wurden. Zum Abrufen der Daten ist die KUSA des Kundendatensatzes notwendig
-      operationId: getAddressesForCustomer
-      parameters:
-        - name: customer_id
-          in: path
-          description: KUSA
-          required: true
-          schema:
-            $ref: '#/components/schemas/CustomerId'
-        - name: category
-          in: query
-          schema:
-            type: string
-            enum: [principal]
-            example: principal
-        - name: limit
-          description: Anzahl zu liefernder Adressen
-          in: query
-          schema:
-            type: integer
-            minimum: 1
-            maximum: 50
-            example: 50   
-      responses:
-        '200':
-          description: successful operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AddressesResponse'
-        '204':
-          description: No superior found
-        '400':
-          description: Invalid ID supplied
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-  /customers/{customer_id}/gvks:
-    get:
-      tags:
-        - gvks
-      summary: Abrufen der GvK-Daten
-      description: Liefert die Liste aller GvK-Verbünde, in denen die eingegebene Person enthalten ist, zu einem Kunden-Datensatz zurück
-      operationId: getGvkForCustomer
-      parameters:
-        - name: customer_id
-          in: path
-          description: KUSA
-          required: true
-          schema:
-            $ref: '#/components/schemas/CustomerId'
-      responses:
-        '200':
-          description: successful operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/GvkResponse'
-        '204':
-          description: No superior found
-        '400':
-          description: Invalid ID supplied
+          description: Bad Request
           content:
             application/vnd.api+json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-  
   /health:
     get:
       security: []
-      tags:
-      - health
+      tags: [health]
       summary: Allgemeiner Healthcheck.
-      description: |
-        Dieser muss ohne Autorisierung aufrufbar sein.
-        Die Minimalanforderung ist ein {status: 'UP'} wenn der Service gerufen werden kann.
+      description: >-
+        Dieser muss ohne Autorisierung aufrufbar sein. Die Minimalanforderung ist ein {status: 'UP'} 
+        wenn der Service gerufen werden kann.
       operationId: getHealthStatus
       responses:
-        "200":
+        '200':
           description: OK
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/HealthCheckOkResponse"
+                $ref: "#/components/schemas/HealthOkResponse"
               example:
                 status: "UP"
-        "503":
+        '503':
           description: Error - Meldung nur möglich, wenn Prüfung ausserhalb des Service erfolgt.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/HealthCheckErrorResponse'
+                $ref: '#/components/schemas/HealthErrorResponse'
               example:
                 status: "OUT_OF_SERVICE"
 components:
   schemas:
-    Customer:
-      description: Datenmodell eines Kunden
+# Verbund anlegen:   
+    PostAssociatesRequest:
       type: object
-      additionalProperties: false
       required:
-        - type
-        # id can't be a required property for resource creation (POST) usage
-        # (unless we'd define separate request & response models, which seems
-        # unnecessarily complicated)
+      - data
       properties:
+        data:
+          $ref: '#/components/schemas/Associate'
+    PostAssociatesResponse:
+      type: object
+      required:
+      - data
+      properties:
+        data:
+          $ref: '#/components/schemas/Associate'
+    Associate:
+      type: object
+      description: Verbund anlegen.
+      required:
+      - type
+      - attributes
+      properties:
+        id:
+          type: string
+          example: MDAwMS0wMS0wMS0wMC4wMC4wMC4wMDAwMDA
+          description: >-
+                Verbund_ID. Eindeutiger Schlüssel, Base64 encodierter ID-Timestamp des Verbundes.
         type:
           type: string
-          enum: [customers]
-          example: customers
-        id:
-          $ref: '#/components/schemas/CustomerId'
+          description: Objekt Type
+          example: associates
+          enum:
+            - associates
         attributes:
           type: object
           required:
-            - last_name
-            - red_card
-            - gekos_list
-            - roles_list
+          - associates
+          - roles
           properties:
-            salutation:
-              type: string
-              maxLength: 30
-              description: Bei der Ansprache einer Person zu verwendende Anrede. Erfassung über Schlüssel (SVZ=ANR) oder als freier Text möglich. Gespeichert wird nur Text.
-              example: Frau
-            letter_salutation:
+            associates:
               type: array
-              description: Anredeform in Briefen, die entweder automatisch abgeleitet wird oder individuell gepflegt werden kann. (bis zu 2 Zeilen)
-              maxItems: 2
+              minItems: 0
+              maxItems: 50
+              uniqueItems: true
               items:
-                type: string
-                maxLength: 60
-                example: Sehr geehrter Kunde
-            last_name:
-              type: string
-              description: (Nach-) Name des Kunden oder Firmenname
-              example: "Jur. Person: XYZ GmbH & Co. KG; nat. Person: Müller"
-            name_extension:
-              type: string
-              description: Namenszusatz
-              example: "jr."
-            first_name:
-              type: string
-              description: Vorname des Kunden (bei natürlichen Personen)
-              example: Max
-            date_of_birth:
-              type: string
-              format: date
-              description: Geburtsdatum des Kunden
-              example: 1970-01-01
-            category:
-              type: object
-              properties:
-                kusy:
-                  description: Kundensystematik-Schlüssel des DSGV
-                  type: string
-                  example: '300400118310000'
-            closing_notation:
-              type: string
-              description: Schliessungsvermerk für Kundendatensatz
-              example: '12.05.2018'
-            consultant_no:
-              type: string
-              description: Beraternummer / Schlüssel-ID für Daten aus DAuM
-              example: '3660070'
-            consultant_rolename:
-              type: string
-              description: Rolle zur Beraternummer
-              enum: ['Kd.betreuend']
-            contact_details:
+                $ref: '#/components/schemas/CustomerId'
+              example: ['17', '630188']
+              description: >- 
+                Personen_NR die zu einem Verbund angelegt werden sollen.
+            roles:
               type: array
-              items: 
-                $ref: '#/components/schemas/ContactDetail'
-            ## weitere Felder aus Offenlegung    
-            is_spk_customer:
-              type: boolean
-              description: Kennzeichen Sparkassenkunde
-            legal_form:
-              type: string
-              description: Rechtsform
-              example: 'GmbH'
-            has_difin_agreement:
-              type: boolean
-              description: Kennzeichen Difin-Vereinbarung
-            taxconsultant_id:
-              description: KUSA Steuerberater
-              type: string
-              maxLength: 10
-              example: 71237128
-            taxconsultant_agreement:
-              description: Merkmal 'Steuerberater-Vollmacht liegt vor'
-              type: boolean
-            is_disclosure_mandatory:
-              type: boolean
-              description: Kennzeichen Offenlegungs-Pflicht
-            department_no:
-             type: string
-             description: Referat-Nummer
-             example: '4482559'
-            department_rolename:
-              type: string
-              description: Rolle zur Referatsnummer
-              enum: ['Kusa-Referat']
-            is_commercial_customer:
-              type: boolean
-              description: Knz. Gewerblicher Kunde
-              example: false
-            customer_segment:
-              type: string
-              description: Kundensegment
-              example: 'Segment'
-            master_data_no:
-              type: string
-              description: Stammdatennummer (Nummer der BuBa-Stammdatenbank)
-            ## Offenlegung erwartet nun das Gründungsdatum getrennt
-            date_of_founding:
-              type: string
-              format: date
-              description: Kunde Gründungsdatum
-              example: '1990-07-13'
-            customer_type:
-              type: string
-              description: Kundentyp
-            economic_sector:
-              type: string
-              description: Wirtschaftszweig
-            start_of_relation:
-              type: string
-              format: date
-              description: Geschäftsverbindung seit
-              example: '1988-01-12'
-            email_communication_permitted:
-              type: boolean
-              description:  "Einwilligung in die geschäftliche Kommunikation (via eMails)"
-            ## KYC Felder:
-            red_card:
-              type: boolean
-              description: >-
-                Rote Karte - Ist in mindestens der folgenden Listen ein Eintrag enthalten, so ist das Kennzeichen rote Karte auszugeben.
-              example: false
-            gekos_list:
-              type: array
-              description: >-
-                Alle GeKos, die einer Person zugeordnet sind und im SVZ GRP enthalten sind.
-              items: 
-                $ref: '#/components/schemas/Geko'
-            roles_list:
-              type: array
-              description: >-
-                Alle Rollen, die einer Person zugeordnet sind und im SVZ RRP enthalten sind.
-              items: 
+              minItems: 0
+              maxItems: 50
+              uniqueItems: true
+              items:
                 $ref: '#/components/schemas/Role'
-        relationships:
-          type: object
-          properties:
-            addresses:
-              type: object
-              properties:
-                links:
-                  type: object
-                  properties:
-                    related: 
-                      type: string
-                      example: "https://api.lbbw.de/customer/customer-service/customers/74352708/addresses"
-                data:
-                  $ref: '#/components/schemas/AddressHeader'
-            gvks:
-              type: object
-              properties:
-                links:
-                  type: object
-                  properties:
-                    related: 
-                      type: string
-                      example: "https://api.lbbw.de/customer/customer-service/customers/74352708/gvks"
-        links:
-          type: object
-          properties:
-            self: 
+              example: ['ROLLE_1', 'ROLLE_2', 'ROLLE_3']
+              description: >- 
+                Eintrag in der Partnertabelle kennzeichnet 
+                  a) Rolle der Person i.S. DBGK oder 
+                  b) Existenz bestimmter Informations-Objekte (Anschrift, Statistikdaten etc.) in der Personen-DB.
+            role_type:
               type: string
-              example: "https://api.lbbw.de/customer/customer-service/customers/74352708"
-              
-    CustomerResponse:
-      description: Anwort deS CustomerService
+              example: 'ROLLEN_TYP_1'
+              description: >- 
+               Verbundart. Zusammenfassung mehrerer Rollen. Eine Rolle kann nur einer Rollenart zugeordnet werden. 
+               Die Verbundart wird über den Inputparameter ROLLENART festgelegt.
+            mark:
+              type: string
+              example: 'Merkmal_1'
+              description: >- 
+               Lt. fachlicher Beschreibung des DynS-Prozesses kann ein Merkmal zu einer Verbundrolle über den optionalen 
+               Parameter TEXT_PARTNER erfasst werden.
+            messageText:
+              type: string
+              description: >- 
+                Meldungstext aus dem DynS-Prozess.
+              example: 'MGK16340N010 - Der Prozess wurde erfolgreich ausgefuehrt.'
+    # Verbund erweitern:   
+    PutAssociatesRequest:
       type: object
+      required:
+      - data
       properties:
         data:
-          $ref: '#/components/schemas/Customer'
+          $ref: '#/components/schemas/Associate'
+    PutAssociatesResponse:
+      type: object
+      required:
+      - data
+      properties:
+        data:
+          $ref: '#/components/schemas/Associate'
     CustomerId:
-      description: KUSA - LBBW Kunden-ID / OSP. PERSONEN_NR
       type: string
+      description: >-
+        KUSA. Eindeutiger Schlüssel des Kunden.
       maxLength: 10
-      example: 71237128
-    ContactDetail:
-      description: Kontaktinformation
-      required: 
-      - type
-      - value
-      properties:
-        type: 
-          description: Art der Kontaktinformation
-          type: string
-          enum: [email, mobilephone, phone, internet, other]
-          example: email
-        value:
-          description: Kontaktinformation
-          type: string
-          example: max.mueller@example.com
-        communication_permitted:
-          type: boolean
-          description: "Einwilligung - Elektronische Post"
-    Geko:
-      description: Genersicher Konstrukt
-      required: 
-      - gen_con
-      properties:
-        gen_con:
-          description: Typ eines generischen Konstruktes.
-          type: string
+      pattern: '\d{1,10}'
+      example: '630188'
     Role:
       description: Personen Rolleninformationen
       required: 
@@ -584,867 +296,13 @@ components:
         role: 
           description: Rolle der Person.
           type: string
-    AddressesResponse:
-      description: Antwort für Addressen zu Kunde
-      type: object
-      properties:
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/Address'
-        links:
-          type: object
-          properties:
-            self: 
-              type: string
-              example: "https://api.lbbw.de/customer/customer-service/customers/74352708/addresses"
-    AddressHeader:
-      description: type/id-Header Adresse
-      type: object
-      properties:
-        type:
-          type: string
-          enum: [addresses]
-          example: addresses
-        id:
-          type: string
-          description: Eineindeutige ID der Adresse
-          example: 12345
-      required:
-        - type
-    Address:
-      description: Datenmodell Adresse
-      # Instead of repeating the type/id header here this could inherit/compose
-      # attributes using the allOf construct. Alas, ESB tooling doesn't seem to
-      # understand this...
-      # allOf:
-      #   - $ref: '#/components/schemas/AddressHeader'
-      #   - type: object
-      type: object
-      properties:
-        type:
-          type: string
-          enum: [addresses]
-          example: addresses
-        id:
-          type: string
-          description: Eineindeutige ID der Adresse
-          example: 12345
-        attributes:
-          type: object
-          properties:
-            category:
-              type: string
-              description: Art der Adresse (Hauptwohnsitz, Versandadresse, ...)
-              enum: [principal]
-              example: principal
-            street:
-              type: string
-              description: Strasse
-              example: Musterstrasse
-            number:
-              type: string
-              description: Hausnummer
-              example: 1b
-            postalcode:
-              type: string
-              description: PLZ
-              example: 45876
-            city:
-              type: string
-              description: Stadt
-              example: Musterstadt
-            country:
-              type: string
-              description: Land
-              example: Deutschland
-            country_code:
-              type: string
-              description: ISO-Ländercode
-              example: 038
-            is_mailing_forbidden:
-              type: boolean
-              description: Postverbot zur Person
-          required:
-            - category
-            - street
-            - number
-            - postalcode
-            - city
-            - country
-    GvkResponse:
-      description: Antwort zu GvK zu Kunde
-      type: object
-      properties:
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/gvk_model'
-        links:
-          type: object
-          properties:
-            self: 
-              type: string
-              example: "https://api.lbbw.de/customer/customer-service/customers/74352708/gvks"
-    gvk_model: 
-      description: Datenmodell GvK
-      type: object
-      properties:
-        type:
-          type: string
-          enum: [gvks]
-          example: gvks
-        id:
-          type: string
-          description: Eineindeutige ID der GvK
-          example: 12345678
-        attributes:
-          type: object
-          properties:
-            name:
-              type: string
-              description: Name GvK
-              example: Mustergruppe
-            number:
-              type: number
-              description: Nummer der GvK
-              example: 12345678
-            kusa:
-              type: number
-              description: KUSA der GvK
-              example: 12345678
-          required:
-            - name
-            - number
-            - kusa
-      required:
-        - type
-        - id
-    # SearchCustomers Models
-    SearchRequest:
-      type: object
-      description: SearchRequest enthält Suchparameter.
-      required: 
-      - data
-      properties:
-        data:
-          $ref: '#/components/schemas/SearchParams'
-    SearchResponse:
-      type: object
-      description: SearchResponse enthält Suchtreffer.
-      required:
-      - data
-      properties:
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/Hit' #Treffer
-    SearchParams:
-      type: object
-      description: Suchparameter setzen sich aus Suchoptionen und Suchfelder zusammen.
-      required:
-      - type
-      - attributes
-      properties:
-        type:
-          type: string
-          description: Objekt Type
-          enum:
-            - search_params
-          example: search_params
-        attributes:
-          type: object
-          required:
-          - mark_selection_type
-          - mark_main_residence
-          - mark_historical_entries
-          - mark_historical_address_entries
-          - mark_alias_entries
-          - mark_inactive_entries
-          - mark_vip_entries
-          properties:
-             mark_selection_type:
-                $ref: '#/components/schemas/Mark_selection_type'
-             mark_main_residence:
-                $ref: '#/components/schemas/Mark_main_residence'
-             mark_historical_entries:
-                $ref: '#/components/schemas/Mark_historical_entries'
-             mark_historical_address_entries:
-                $ref: '#/components/schemas/Mark_historical_address_entries'
-             mark_alias_entries:
-                $ref: '#/components/schemas/Mark_alias_entries'
-             mark_inactive_entries:
-                $ref: '#/components/schemas/Mark_inactive_entries'
-             mark_vip_entries:
-                $ref: '#/components/schemas/Mark_vip_entries'
-             mark_birth_names:
-                $ref: '#/components/schemas/Mark_birth_names'
-             customer_id:
-                $ref: '#/components/schemas/CustomerId'
-             customer_type:
-                $ref: '#/components/schemas/Customer_type'
-             prospective_customer_type:
-                $ref: '#/components/schemas/Prospective_customer_type'
-             legal_form:
-                $ref: '#/components/schemas/Legal_form'
-             customer_nr:
-              $ref: '#/components/schemas/Customer_nr'
-             account_number:
-                type: integer
-                format: int64
-                maxLength: 11
-                example: +00000000001
-                description: >-
-                    KONTONR. Bei der Kontonummer handelt es sich um das Identifikationsmerkmal des Kontos.
-             bank_code:
-                type: integer
-                format: int64
-                maxLength: 4
-                example: 11
-                description: >-
-                    BLZ. Jedes inländische Institut ist eindeutig durch die Bankleitzahl identifiziert. 
-                    Folgende spezielle BLZ sind den angegebenen Instituten zugeordnet: 
-                    0=eigenes Institut; 00100000=LBS; 00200000=WPV; 
-                    00300000=DEKA; 40050000=Depot; 50050000=Depot(HeLaBa)
-             last_name:
-                type: string
-                maxLength: 48
-                example: "Jur. Person: XYZ GmbH & Co. KG; nat. Person: Müller" 
-                description: >-
-                    S_NAME. Argument zur Angabe eines Nachnamens zum Suchen einer Person. Es kann auch eine Wildcard angegeben werden. 
-                    Dann sind aber mindestens die ersten drei Zeichen anzugeben. Bei Sch sind mindestens vier Zeichen anzugeben.
-             last_name_addition::
-                type: string
-                maxLength: 45
-                example: "Jur. Person: XYZ GmbH & Co. KG; nat. Person: Müller" 
-                description: S_NAMENSERW. Suchkriterium für einen Teil der Namensbezeichnung.
-             first_name:
-                type: string
-                maxLength: 48
-                example: "Peter"
-                description: >-
-                    S_VORNAME. Filterkriterium zum Suchen nach bestimmten Vornamen von Personen.
-             first_name_addition:
-                type: string
-                maxLength: 60
-                example: "Hans-Dieter"
-                description: S_VORNAMEN_WEITERE. Suchkriterium für eine Zeichenkette mit weiteren Vornamen zu einer natürlichen Person.
-             title:
-                type: string
-                maxLength: 45
-                example: Dr.
-                description: >-
-                    S_TITEL. Suchkriterium für eine nicht zum Sortierbegriff gehörende Bezeichnung die in der Anschrift vor den Vornamen / Untersortierbegriff gestellt werden soll. 
-             date_of_birth:
-                type: string
-                format: date
-                maxLength: 10
-                example: 1984-05-02
-                description: GEBURTSDATUM. Geb.-Dat. der Privatperson oder nat. Geschäftsperson. ISO 8601 Format.
-             role:
-                type: string
-                maxLength: 12
-                example: ROLLE   
-                description: >-
-                    ROLLE. Eintrag in der Partnertabelle kennzeichnet 
-                    a) Rolle der Person i.S. DBGK oder 
-                    b) Existenz bestimmter Informations-Objekte (Anschrift, Statistikdaten etc.) in der Personen-DB.
-             role_type:
-                type: string
-                maxLength: 12
-                example: ROLLENART   
-                description: >-
-                    ROLLENART. Zusammenfassung mehrerer Rollen. Eine Rolle kann nur einer Rollenart zugeordnet werden.
-             hit_probability:
-                $ref: '#/components/schemas/Hit_probability'    
-             match_code_telekom:
-                type: string
-                maxLength: 32
-                example: MATCH_CODE_TELEKOM
-                description: >- 
-                    MATCH_CODE_TELEKOM. Telekommunikationsadresse in standardisierter Form zur Unterstützung von Suchprozessen.
-                    Name bzw. Vorname werden links- bzw. rechtsbündig im Feld gespeichert. Kleinbuchstaben und Umlaute werden in entsprechende Großbuchstaben überführt. 
-                    Sonderzeichen und Blanks werden entfernt. 01.12.1997, Andre klemann : Das Datenelement wird nicht vom Prozeß PERSON_LESEN als Output-Parameter angegeben. 
-             post_office_box:
-                $ref: '#/components/schemas/Post_office_box' 
-             post_code:
-                $ref: '#/components/schemas/Post_code'
-             address_addition_1:
-                $ref: '#/components/schemas/Address_addition_1'
-             street:
-                $ref: '#/components/schemas/Street'
-             house_number:
-                $ref: '#/components/schemas/House_number'
-             city:
-                $ref: '#/components/schemas/City'
-             iso_country_code:
-                $ref: '#/components/schemas/ISO_country_code'
-             number_state_code:
-                type: string
-                maxLength: 6
-                example: 07   
-                description: S_LANDESVORWAHL. Suchkriterium die Landesvorwahl einer Telekom-Adresse.
-             number_substation:
-                type: string
-                maxLength: 8
-                example: 0711
-                description: S_NEBENSTELLE_NR. Suchkriterium für die Nebenstellennummer einer Telekom-Adresse.
-             number_area_code:
-                type: string
-                maxLength: 8
-                example: 70
-                description: VORWAHL_NR. Vorwahl einer Telekom-Adresse. Speicherung numerisch linksbündig mit führender Null.
-             number_main_station:
-                type: string
-                maxLength: 10
-                example: 12
-                description: HAUPTSTELLE_NR. Hauptstellennummer einer Telekom-Adresse. Speicherung numerisch linksbündig.
-             email:
-                type: string
-                maxLength: 254
-                example: max.muster@email.com
-                description: S_ELEKTRON_ADR. Suchkriterium Feld ELEKTRON_ADR.
-             input_option_1:
-                type: string
-                maxLength: 40
-                example: OPTION_1
-                description: PSU_EIGB_SLKR_1. Eingabemöglichkeit von einem Suchkriterium für die PERSONEN-SUCHE, welches vorher nicht fest definiert ist.
-             input_option_2:
-                type: string
-                maxLength: 40
-                example: OPTION_2
-                description: PSU_EIGB_SLKR_2. Eingabemöglichkeit von einem Suchkriterium für die PERSONEN-SUCHE, welches vorher nicht fest definiert ist.
-             input_option_3:
-                type: string
-                maxLength: 40
-                example: OPTION_3
-                description: PSU_EIGB_SLKR_3. Eingabemöglichkeit von einem Suchkriterium für die PERSONEN-SUCHE, welches vorher nicht fest definiert ist.
-             input_option_4:
-                type: string
-                maxLength: 40
-                example: OPTION_4
-                description: PSU_EIGB_SLKR_4. Eingabemöglichkeit von einem Suchkriterium für die PERSONEN-SUCHE, welches vorher nicht fest definiert ist.
-             input_option_5:
-                type: string
-                maxLength: 40
-                example: OPTION_5
-                description: PSU_EIGB_SLKR_5. Eingabemöglichkeit von einem Suchkriterium für die PERSONEN-SUCHE, welches vorher nicht fest definiert ist.
-             input_option_6:
-                type: string
-                maxLength: 40
-                example: OPTION_6
-                description: PSU_EIGB_SLKR_6. Eingabemöglichkeit von einem Suchkriterium für die PERSONEN-SUCHE, welches vorher nicht fest definiert ist.
-             input_option_7:
-                type: string
-                maxLength: 40
-                example: OPTION_7
-                description: PSU_EIGB_SLKR_7. Eingabemöglichkeit von einem Suchkriterium für die PERSONEN-SUCHE, welches vorher nicht fest definiert ist.
-             input_option_8:
-                type: string
-                maxLength: 40
-                example: OPTION_8
-                description: PSU_EIGB_SLKR_8. Eingabemöglichkeit von einem Suchkriterium für die PERSONEN-SUCHE, welches vorher nicht fest definiert ist.
-             input_option_9:
-                type: string
-                maxLength: 40
-                example: OPTION_9
-                description: PSU_EIGB_SLKR_9. Eingabemöglichkeit von einem Suchkriterium für die PERSONEN-SUCHE, welches vorher nicht fest definiert ist.
-             input_option_10:
-                type: string
-                maxLength: 40
-                example: OPTION_10
-                description: PSU_EIGB_SLKR_10. Eingabemöglichkeit von einem Suchkriterium für die PERSONEN-SUCHE, welches vorher nicht fest definiert ist.
-    #Suchoptionen.
-    Mark_selection_type:
-        type: string
-        enum:
-        - ALIAS
-        - WILDCARD
-        - ERW.PHONETIK
-        example: ALIAS
-        description: >-
-            Mit der Selektionsart kann gesteuert werden, wie auf die Daten zugegriffen werden soll (SVZ PSU). 
-            Mögliche Werte: ALIAS, ERW.PHONETIK, WILDCARD. Die Art, mit der zugegriffen werden soll.
-                - ERW.PHONETIK
-            Bei der phonetischen Namenssuche werden aus den Eingaben in den
-            Namens-Zeilen phonetische Codes ermittelt, die mit den im System
-            hinterlegten Codes verglichen werden. Die Treffer mit der höchsten
-            Trefferquote werden vom System zurückgegeben.
-            Da bei der phonetischen Namenssuche keine Gewichtung nach Vor-, 
-            Nachnamen oder Namenserweiterung verwendet wird, kann bereits der
-            komplette Namen in einer der Zeilen eingesetzt werden, sofern dafür genug Platz vorhanden ist.
-            Beispiele: "Patric" findet "Patrick", "Patrik".
-                - WILDCARD:
-            Suche über Wildcards möglich: Beim Nachnamen sind mindestens die 
-            ersten drei Zeichen des Namens anzugeben, danach kann ein " * " 
-            gesetzt werden. 
-                - ALIAS:
-            Suche über die ALIAS-Einträge. Es wird bei der Suche nur der S_NAME
-            berücksichtigt. Wildcards sind möglich.
-            Eine Kombination der phonetischen, ALIAS- und Wildcard-Suche ist nicht möglich.
-    Mark_main_residence:
-        type: boolean
-        example: false
-        description: >-
-            Hauptwohnsitz-Kennzeichen: sollen nur Hauptwohnsitze/Firmensitze berücksichtigt werden?
-                JA - Suche über Haupt- bzw. Firmenwohnsitze. 
-                NEIN - Übergreifenden Suche über alle Wohnsitze. 
-                Als Ausgabe wird (trotz Eingabe eines Nebenwohnsitzes) der Haupt- bzw. Firmenwohnsitz der gefundenen Person geliefert.
-    Mark_historical_entries:
-        type: boolean
-        example: false
-        description: >-
-            Historische-Namen-Kennzeichen: sollen historische Namen berücksichtigt werden? 
-                JA - Suche auch in den historischen Einträgen. Hier sind keine historischen Alias-Einträge enthalten.
-                NEIN - Keine Suche in den historischen Namenseinträgen. 
-    Mark_historical_address_entries:
-        type: boolean
-        example: false
-        description: >-
-            Historische-Anschriften-Kennzeichen: sollen historische Anschriften berücksichtigt werden?
-                JA - Suche in den historischen Anschrifteneinträgen.
-                NEIN - Keine Suche in den historischen Anschrifteneinträgen.
-    Mark_alias_entries:
-        type: boolean
-        example: false
-        description: >-
-            Alias-Kennzeichen: sollen Alias-Namen berücksichtigt werden?
-                JA - phonetische Suche in Alias-Einträgen.
-                NEIN - Keine phonetische Suche in Alias-Einträgen.
-    Mark_inactive_entries:
-        type: boolean
-        example: false
-        description: >-
-            Inaktiv-Kennzeichen: sollen inaktive Personen angezeigt werden?
-                J = Suche über lebende und zur Schließung vorgemerkte Personensätze(Löschkennzeichen L oder V).
-                N = Suche nur über lebende Personensätze (keine zur Schließung vorgemerkten Personensätze).
-                1 = Suche über lebende und seit maximal einem Jahr zur Schließung vorge-merkten Personensätze, gemessen am Datum in "Geschäftsverbindung aufgelöst seit".
-    Mark_vip_entries:
-        type: boolean
-        example: false
-        description: >-
-            VIP-Kennzeichen: sollen Daten von geschützten Personen unkenntlich gemacht werden?
-                JA - alle gefundenen Personen, unabhängig von eventuell zu prüfenden Privilegien, werden angezeigt. 
-                Persönlichen Daten von geschützten Personen werden ausgeblendet. Es werden ausschließlich Personen-Nummer, Name, Vorname und Betreuende Stelle angegeben. 
-                Nur privilegierten Benutzern wird der gefundene zu schützende Personensatz angezeigt.
-                NEIN - Es werden keine geschützten Personen ausgegeben, außer der Aufrufer besitzt die entsprechenden Privilegien.
-    Mark_birth_names: #Optionales Suchoption
-        type: boolean
-        example: false
-        description: >-
-            EPSU_GNAM_KZ. Kennzeichen, ob in der Personensuche auch in den Geburtsnamen gesucht wird. (Institutsparameter).Mögliche Werte: J/N
-    Customer_type:
-        type: string
-        maxLength: 1
-        example: P
-        description: >- 
-            PERS_ART_ASWL. Kundentyp. Unterscheidungsmerkmal für eine Person aus fachlich-juristischer Sicht: 
-            Privatperson, Natürliche Geschäftsperson, Personengemeinschaft, Juristische Person.
-            Auswahlkriterim bzgl. der verschiedenen Personenarten. Default: PNGJ1
-    Prospective_customer_type:
-        type: integer
-        format: int32
-        maxLength: 2
-        example: 0
-        description: >- 
-            PERS_INTS_TYP. Der Interessententyp enthält 0 für Kunde oder einen Wert größer 0. 
-            Die zulässigen Werte sind im SVZ ITY hinterlegt.
-    Customer_nr:
-        type: string
-        maxLength: 30
-        example: 9260-01-08-20.42.03.307620
-        description: PERS_NR. Künstlicher Schlüssel zur Identifikation einer Person.
-    Legal_form:
-        type: string
-        maxLength: 12
-        example: GMBH
-        description: ORG_RECHTSFORM. Rechtsform einer Organisation.
-        enum:
-          - AG
-          - ANSTALT
-          - EIN.EINZELF.
-          - EWIV
-          - GBR
-          - GBR-M-HAFTB
-          - GENOSSENSCH
-          - GMBH
-          - GMBHCO.KG
-          - JUR.OEFFENTL
-          - KG
-          - KGAA
-          - KOERPERSCHFT
-          - NR.VEREIN
-          - OEFF-STIFTNG
-          - OHG
-          - PARTNER-GES.
-          - PRIV-STIFTNG
-          - QUOTEN-GBR
-          - SONSTIGE
-          - VEREIN E.V.
-    House_number:
-        type: string
-        maxLength: 10
-        example: 7a
-        description: S_HAUS_NR. Suchkriterium für eine Hausnummer.    
-    Street:
-        type: string
-        maxLength: 30
-        description: S_STRASSE/STRASSE. Bezeichnung einer Straße. Suchkriterium.
-        example: Musterstraße
-    City:
-        type: string
-        maxLength: 30
-        description: S_ORT/ORT. Anschriftenfeld für die Ortsbezeichnung. Suchkriterium.
-        example: Frankfurt am Main
-    ISO_country_code:
-        type: string
-        maxLength: 3
-        example: DEU
-        description: >-
-            ISO_LAENDER_CODE. Länder-Code nach ISO-Norm. SVZ=LAP, Land (Firmenhauptsitz).
-            Sprechende Länderbezeichnung nach Post-System, die zum ISO_LAENDER_CODE im SVZ 'LAP' hinterlegt ist.
-    Post_office_box:
-        type: string
-        maxLength: 10
-        description: S_POSTFACH/POSTFACH. Anschriftenfeld für eine Postfach-Nummer der Bundespost.
-        example: 7a 
-    Post_code:
-        type: string
-        maxLength: 10
-        description: POSTLEITZAHL. Anschriftenfeld für die 5-stellige Postleitzahl der Bundespost.
-        example: 70176
-    Address_addition_1:
-        type: string
-        maxLength: 30
-        description: S_POST_ERG_1/POST_ERG_1. Adressbezogene Ergänzung, z. B. 'Appartement 333'.
-        example: Appartement 333
-    Hit_probability:
-        type: integer
-        format: int32
-        description: TREFFER_WLKT. Trefferwahrscheinlichkeit dieses Satzes der erweiterten phonetischen Namenssuche in Prozent.
-        example: 100
-    Hit:
-      type: object
-      description: Suchtreffer.
-      required:
-      - type
-      - attributes
-      properties:
-        type:
-          type: string
-          description: Objekt Type
-          enum:
-            - hits
-          example: hits
-        attributes:
-          type: object
-          required:
-          - last_name
-          - customer_id
-          properties:
-            customer_id:
-              $ref: '#/components/schemas/CustomerId'
-            customer_nr:
-              $ref: '#/components/schemas/Customer_nr'
-            is_spk_customer:
-              type: boolean
-              description: >- 
-                Kennzeichen Sparkassenkunde. Erforderlich, um den Kundendatenschutz gewährleisten zu können.
-                Die Ausprägungen des GeKos 6008 werden ausgelesen und geprüft.
-            hit_probability:
-              $ref: '#/components/schemas/Hit_probability'    
-            binary_string:
-              type: string
-              description: BINAER_STRING. Binärer String.
-              example: 0001110
-            salutation:
-              type: string
-              maxLength: 30
-              description: ANREDE. Bei der Ansprache einer Person zu verwendende Anrede. Erfassung über Schlüssel (SVZ=ANR) oder als freier Text möglich. Gespeichert wird nur Text.
-              example: Herr
-            consultant:
-              type: string
-              maxLength: 2
-              description: BERATERPLATZ. Der Schlüssel für den Beraterplatz innerhalb eines Service-Centers ist Bestandteil des Beraterschlüssels (GGGSSBB). Beraterplatz (Positionen 6 bis 7 des Beraterschlüssels).
-              example: 
-            consultant_providing_service:
-              type: string
-              maxLength: 2
-              description: BERATERPLATZ_SERV. Schlüssel des service-leistenden Beraterplatzes.
-              example: 
-            marital_status:
-              type: string
-              maxLength: 1
-              description: FAMILIENSTAND. Gibt den Familienstand an. SVZ=FAM.
-              example: 
-            date_of_birth:
-              type: string
-              format: date
-              maxLength: 10
-              description: GEBURTSDATUM. Geb.-Dat. der Privatperson oder nat. Geschäftsperson. ISO 8601 Format.
-              example: 1984-05-02
-            birth_name:
-              type: string
-              maxLength: 30
-              description: GEBURTSNAME. In Abhängigkeit von Familienstand = verheirat / geschieden / verwitwet.
-              example: GEBURTSNAME
-            office:
-              type: string
-              maxLength: 3
-              description: GESCHAEFTSSTELLE. Der Schlüssel für eine Geschäftstelle der Sparkasse ist Bestandteil des Beraterschlüssels (GGGSSBB). SVZ=GSK.
-              example:   
-            office_providing_service:
-              type: string
-              maxLength: 3
-              description: GESCHAEFTSST_SERV. Der Schlüssel der service-leistenden Geschäftstelle der Sparkasse.
-              example: 
-            gender:
-              type: string
-              maxLength: 1
-              description: GESCHLECHT.   Geschlecht (weiblich/männlich). SVZ=GES.
-              example: 
-            date_of_founding:
-              type: string
-              format: date
-              maxLength: 10
-              description: GRUENDUNGSDATUM. Gründung einer Personengemeinschaft oder jur. Person etc. ISO 8601 Format.
-              example: 1984-05-02
-            matrimonial_property_regime:
-              type: string
-              maxLength: 1
-              description: GUETERSTAND. Gibt den Güterstand an, falls Familienstand "verheiratet" ist. SVZ=GST.
-              example: 
-            account_resolution_date:
-              type: string
-              format: date
-              maxLength: 10
-              description: G_VERB_AUFGEL. Datum der Auflösung des letzten Kontos (Person = Kontoinhaber). ISO 8601 Format.
-              example: 1984-05-02
-            house_number:
-              type: string
-              maxLength: 10
-              example: 7a
-              description: HAUS_NR. Nummer, die ein Gebäude oder ein Grundstück an einer Straße identifiziert.
-            iso_country_code:
-              type: string
-              maxLength: 3
-              description: ISO_LAENDER_CODE. Länder-Code nach ISO-Norm. SVZ=LAP.
-              example: DEU 
-            application_look:
-              type: string
-              maxLength: 2
-              description: >-
-                KND_OPTIK_SCHL. Schlüssel zur Auswahl der gegenüber einem Kunden zu nutzenden Anwendungs-Optik.
-                SVZ: MDT. Z.B. NordLB- bzw. BLSK-Optik (Braunschweigische Landesbausparkasse).
-              example: 
-            account_number:
-              type: integer
-              format: int64
-              maxLength: 12
-              description: >-
-                KUNDEN_NR. Vom Mandanten vergebener Schlüssel zur Identifikation eines Kunden; 
-                meistens handelt es sich hierbei um eine Kontonummer des Kunden.
-              example: 
-            new_customer_system_DSGV_key:
-              type: string
-              maxLength: 20
-              description: KUSY_DSGV_NEU. Neuer Kundensystematik-Schlüssel des DSGV.
-              example: 
-            country:
-              type: string
-              maxLength: 30
-              description: LAND. Sprechende Länderbezeichnung nach Post-System, die zum ISO_LAENDER_CODE im SVZ 'LAP' hinterlegt ist.
-              example: 
-            deleted_customer_mark:
-              type: string
-              maxLength: 1
-              description: LOESCH_KZ_PERS. Dieses Kennzeichen sagt aus, dass die Person logisch gelöscht wurde. Sie wird dann nicht mehr in S-KISS angezeigt.
-              example: 
-            last_name:
-              type: string
-              maxLength: 48
-              description: NAME. Nachname einer natürlichen Person bzw. Name/Bezeichnung bei anderen Personenarten. 
-              example: Mustername
-            last_name_addition::
-              type: string
-              maxLength: 45
-              description: NAMENSERW. Teil der Namensbezeichnung, der außerhalb der Sortierbegriffe am Ende der Namensbezeichnung stehen soll.
-              example: Namenserweiterung
-            organisation:
-              type: string
-              maxLength: 2
-              description: ORGAN. Kennzeichen für Mitglieder der Sparkassenorgane, Verbandsangehörige und deren Familienangehörige gem. § 15 KWG.
-              example: 
-            organisation_legal_form:
-              type: string
-              maxLength: 12
-              description: ORG_RECHTSFORM. Rechtsform einer Organisation.
-              example: GMBH
-            city:
-              type: string
-              maxLength: 30
-              description: ORT. Anschriftenfeld für die Ortsbezeichnung.
-              example: Frankfurt am Main
-            customer_type:
-              type: string
-              maxLength: 1
-              description: >- 
-                PERS_ART. Unterscheidungsmerkmal für eine Person aus fachlich-juristischer Sicht : 
-                Privatperson, Natürliche Geschäftsperson, Personengemeinschaft, Juristische Person.
-              example: P
-            customer_subtype:
-              type: string
-              maxLength: 12
-              example: 
-              description: >- 
-                PERS_UNTER_ART. Unterart zu PERS_ART. 
-                Für Gemeinschaftspersonen gilt PERS_UNTER_ART_G mit SVZ 'PUG'. 
-                Für juristische Personen gilt PERS_UNTER_ART_J mit SVZ 'PUJ'. 
-                Für administrative Personen gilt PERS_UNTER_ART_A mit SVZ 'PUA'.
-            post_office_box:
-                $ref: '#/components/schemas/Post_office_box' 
-            post_code:
-                $ref: '#/components/schemas/Post_code'
-            address_addition_1:
-                $ref: '#/components/schemas/Address_addition_1'
-            output_option_1:
-              type: string
-              maxLength: 40
-              description: >- 
-                PSU_AUSG_1. Ausgabemöglichkeit (Anwendungs spezifisch) im Zusammenhang mit der PERSONEN-SUCHE, 
-                welche vorher nicht fest definiert ist.
-              example: example
-            output_option_2:
-              type: string
-              maxLength: 40
-              description: >- 
-                PSU_AUSG_1. Ausgabemöglichkeit (Anwendungs spezifisch) im Zusammenhang mit der PERSONEN-SUCHE, 
-                welche vorher nicht fest definiert ist.
-              example: example
-            output_option_3:
-              type: string
-              maxLength: 40
-              description: >- 
-                PSU_AUSG_1. Ausgabemöglichkeit (Anwendungs spezifisch) im Zusammenhang mit der PERSONEN-SUCHE, 
-                welche vorher nicht fest definiert ist.
-              example: example
-            output_option_4:
-              type: string
-              maxLength: 40
-              description: >- 
-                PSU_AUSG_1. Ausgabemöglichkeit (Anwendungs spezifisch) im Zusammenhang mit der PERSONEN-SUCHE, 
-                welche vorher nicht fest definiert ist.
-              example: example
-            output_option_5:
-              type: string
-              maxLength: 40
-              description: >- 
-                PSU_AUSG_1. Ausgabemöglichkeit (Anwendungs spezifisch) im Zusammenhang mit der PERSONEN-SUCHE, 
-                welche vorher nicht fest definiert ist.
-              example: example
-            output_option_6:
-              type: string
-              maxLength: 40
-              description: >- 
-                PSU_AUSG_1. Ausgabemöglichkeit (Anwendungs spezifisch) im Zusammenhang mit der PERSONEN-SUCHE, 
-                welche vorher nicht fest definiert ist.
-              example: example
-            output_option_7:
-              type: string
-              maxLength: 40
-              description: >- 
-                PSU_AUSG_1. Ausgabemöglichkeit (Anwendungs spezifisch) im Zusammenhang mit der PERSONEN-SUCHE, 
-                welche vorher nicht fest definiert ist.
-              example: example
-            output_option_8:
-              type: string
-              maxLength: 40
-              description: >- 
-                PSU_AUSG_1. Ausgabemöglichkeit (Anwendungs spezifisch) im Zusammenhang mit der PERSONEN-SUCHE, 
-                welche vorher nicht fest definiert ist.
-              example: example
-            output_option_9:
-              type: string
-              maxLength: 40
-              description: >- 
-                PSU_AUSG_1. Ausgabemöglichkeit (Anwendungs spezifisch) im Zusammenhang mit der PERSONEN-SUCHE, 
-                welche vorher nicht fest definiert ist.
-              example: example
-            output_option_10:
-              type: string
-              maxLength: 40
-              description: >- 
-                PSU_AUSG_1. Ausgabemöglichkeit (Anwendungs spezifisch) im Zusammenhang mit der PERSONEN-SUCHE, 
-                welche vorher nicht fest definiert ist.
-              example: example
-            role:
-              type: string
-              maxLength: 12
-              description: >-
-                ROLLE. Eintrag in der Partnertabelle kennzeichnet 
-                    a) Rolle der Person i.S. DBGK oder 
-                    b) Existenz bestimmter Informations-Objekte (Anschrift, Statistikdaten etc.) in der Personen-DB.
-              example: role
-            servicecenter:
-              type: string
-              maxLength: 12
-              description: SERVICECENTER. Service-Center (Positionen 4 bis 5 des Beraterschlüssels).
-              example: 
-            servicecenter_serv:
-              type: string
-              maxLength: 30
-              description: SERVICECENTER_SERV. Schlüssel des service-leistenden Service-Centers
-              example: 
-            street:
-              type: string
-              maxLength: 30
-              description: STRASSE. Bezeichnung einer Straße. 
-              example: Musterstraße
-            title:
-              type: string
-              maxLength: 45
-              description: >-
-                TITEL. Das Feld nimmt die nicht zum Sortierbegriff gehörende Bezeichnung auf, 
-                die in der Anschrift vor den Vornamen / Untersortierbegriff gestellt werden soll.
-              example: Dr. 
-            first_name:
-              type: string
-              maxLength: 48
-              description: >-
-                VORNAME. Vorname(n) bei natürl. Personen sowie Untersortierbegriff bei Personengemeinschaften, 
-                jur. Personen usw.
-              example: Mustervorname
-            first_name_addition:
-              type: string
-              maxLength: 60
-              description: VORNAMEN_WEITERE. Optionale Ergänzung für weitere Vornamen.
-              example: Vorname2
-            access_protection_mark:
-              type: boolean
-              description: >-
-                ZUGRIFFSSCHUTZ_KZ. Kennzeichnet, ob Zugriffsschutz besteht. 
-                Dies ist eine vorbereitende Maßnahme für den zukünftigen erweiterten Personenschutz.
-              example: true
-            prospective_customer_type:
-              $ref: '#/components/schemas/Prospective_customer_type'
-            address_role:
-              type: string
-              maxLength: 12
-              description: ANS_ROLLE. Art der Beziehung einer Anschrift zum zugehörigen Objekt.
-              example: 
-            messageText:
-              type: string
-              description: Meldungstext zur Suche.
-              example: 'Noch weitere Daten vorhanden.'   
-        
-    ## Erweiterung ErrorObject aus json:api
     ErrorResponse:
       type: object
       properties:
         errors:
           type: array
           items:
-            $ref: '#/components/schemas/JsonApiError' 
+            $ref: '#/components/schemas/JsonApiError'
     JsonApiError:
       type: object
       properties:
@@ -1459,7 +317,7 @@ components:
         detail:
           type: string
     # HealthCheck analog zu SpringBoot
-    HealthCheckOkResponse:
+    HealthOkResponse:
       type: object
       required:
         - status
@@ -1468,10 +326,9 @@ components:
           type: string
           enum:
             - UP
-            - UNKNOWN
         components:
-          type: object  
-    HealthCheckErrorResponse:
+          type: object
+    HealthErrorResponse:
       type: object
       required:
         - status
@@ -1479,7 +336,6 @@ components:
         status:
           type: string
           enum:
-            - DOWN
             - OUT_OF_SERVICE
         components:
           type: object
@@ -1488,77 +344,7 @@ components:
       type: http
       scheme: basic
     appId:
-      type: 'apiKey'
+      type: apiKey
       in: header
       name: x-app-id
       description: Applikationskürzel zum FIA-User (wird zur Zuordnung des Client benutzt)
-  # -- edit: filled in values from actual call to DynS
-  examples:
-    Customer:
-      value:
-        relationships:
-          addresses:
-            related: https://api.lbbw.de/customer/customer-service/customers/74352708/addresses
-          gvks:
-            related: https://api.lbbw.de/customer/customer-service/customers/74352708/gvks
-        attributes:
-          customer_type: "55"
-          first_name: FrM-VNAME0074352708
-          department_no: "4482559"
-          name_extension: null
-          date_of_birth: 1965-05-11
-          economic_sector: "99999"
-          date_of_founding: null
-          salutation: Herrn
-          consultant_rolename: Kd.betreuend
-          legal_form: null
-          is_spk_customer: false
-          has_difin_agreement: true
-          consultant_no: "3660070"
-          master_data_no: "000000000000"
-          start_of_relation: 2016-07-29
-          letter_salutation:
-            - Sehr geehrter Kunde
-          is_disclosure_mandatory: false
-          is_commercial_customer: false
-          contact_details: []
-          closing_notation: ""
-          customer_segment: B_RET_KSA_B2, FC_S_ETABLIE, KEYACCOUNTKD
-          department_rolename: Kusa-Referat
-          last_name: J-ZNAME0074352708
-          category:
-            kusy: "200400209900099"
-          taxconsultant_id: null
-          taxconsultant_agreement: false
-          email_communication_permitted: false
-          red_card: true
-          gekos_list: []
-          roles_list: []
-        links:
-          self: https://api.lbbw.de/customer/customer-service/customers/74352708
-        id: "74352708"
-        type: customers     
-    Address:
-      value:
-        attributes:
-          number: "11"
-          country: null
-          country_code: "004"
-          city: Quierschied
-          postalcode: "66287"
-          street: Am-Straße
-          category: principal
-          is_mailing_forbidden: false
-        id: 0640-04-14-10.23.16.607617
-        type: addresses
-    gvk_model:
-      value:
-        kusa: "0035073497"
-        name: "T-ZNAME0035073497"
-        number: "0035073497"         
-    HealthCheckOkResponse:
-      value:
-        status: UP     
-    HealthCheckErrorResponse:
-      value:
-        status: DOWN

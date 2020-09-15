@@ -63,9 +63,9 @@ info:
     altText: LBBW logo
     url: 'https://www.lbbw.de/res/images/logos/lbbw-logo-darkblue_131586_m.svg'
 servers:
-  - url: 'https://api.bp.entw.bank.lbbw.sko.de/customer/associate-service/'
+  - url: 'http://api.bp.entw.bank.lbbw.sko.de/customer/associate-service/'
     description: API-Verzeichnis
-  - url: 'https://esb.bp.entw.bank.lbbw.sko.de/customer/associate-service/'
+  - url: 'http://esb.bp.entw.bank.lbbw.sko.de/customer/associate-service/'
     description: ESB-Service Integrationsumgebung
 externalDocs:
   description: Diese Dokumentation basiert auf der Open Api Specification V3.
@@ -205,7 +205,7 @@ components:
           $ref: '#/components/schemas/Associate'
     Associate:
       type: object
-      description: Verbund anlegen.
+      description: Verbund anlegen oder erweitern.
       required:
       - type
       - attributes

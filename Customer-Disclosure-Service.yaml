@@ -1,11 +1,11 @@
 openapi: 3.0.1
 info:
-  title: Associate-Service
+  title: Verbünde
   description: >
 
     # Beschreibung
     
-    Informationen bezüglich der Verbunde(Associates) sollen von OSP gelesen und nach OSP geschrieben werden.
+    Informationen bezüglich der Verbünde(Associates) sollen von OSP gelesen und nach OSP geschrieben werden.
     
     ## Backendsystem
     
@@ -24,8 +24,8 @@ info:
       - Serviceparameter: weitergehende Regelungen wie Quotas etc. sind nicht Teil der Swagger-Dokumentation, sondern Parameter im API-Gateway, werden dort gepflegt und publiziert
 
     # Domäne/Subdomäne
-      - Der Service ist der fachlichen Domäne 'Customer' zugeordnet.
-      - Die Informationen werden aus den OSP Prozessgruppen 'PERSON' und 'VERBUND' bezogen.
+      - Der Service ist der fachlichen Domäne 'PERSON' zugeordnet.
+      - Die Informationen werden aus den OSP Prozessgruppen 'VERBUND' bezogen.
 
     # IT-System(-nummer)
       - Welchem IT-System ist der Service zugeordnet.
@@ -36,6 +36,7 @@ info:
       - Welche Eigenschaften erbt der Service von dem System?
       - Werden diese Eigenschaften beim Service im API-Verzeichnis mit publiziert (Komfort) und/oder das IT-System verlinkt.
       - Wird die Systemnummer publiziert?
+      - Sollte es eine eigene Domäne 'Verbünde' geben ?
 
     # Schutzniveau
     
@@ -44,11 +45,12 @@ info:
     # Release-Notes
     
       - 2020-09-09: v0.0.1  Erster Entwurf der Operationen und Modellen.
+      - 2020-09-17: v0.0.2  Anpassungen nach dem ersten technischen Review.
 
     # Status
     
-        Version v0.0.1  Erster Entwurf der Operationen und Modellen.
-  version: v0.0.1
+        Version v0.0.2  Anpassungen nach dem ersten technischen Review.
+  version: v0.0.2
   termsOfService: /agb
   contact:
     name: Nicholas Trawniczek
@@ -58,10 +60,10 @@ info:
     name: Apache 2.0
     url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
   x-keywords: >-
-    Verbund, Verbünde, Verbundmerkmale, Person, Personen, KYC
+    Verbund, Verbunde, Verbünde, Verbundmerkmale, Person, Personen, KYC, Konto, Konten
   x-logo:
-    altText: LBBW logo
-    url: 'https://www.lbbw.de/res/images/logos/lbbw-logo-darkblue_131586_m.svg'
+    altText: OSPlus logo
+    url: 'assets/img/osplus.png'
 servers:
   - url: 'http://api.bp.entw.bank.lbbw.sko.de/customer/associate-service/'
     description: API-Verzeichnis
@@ -71,42 +73,66 @@ externalDocs:
   description: Diese Dokumentation basiert auf der Open Api Specification V3.
   url: 'https://github.com/OAI/OpenAPI-Specification'
 tags:
-  - name: post_associate_models
-    x-displayName: Create Associates
+  - name: associate_models
+    x-displayName: Verbund
     description: |
-        Datenmodell für einen Request
+        Datenmodell eines Verbunds
+        <SchemaDefinition schemaRef="#/components/schemas/Associate" showReadOnly={true} showWriteOnly={true} />
+        
+        Datenmodell zum Erstellen eines Verbunds
         <SchemaDefinition schemaRef="#/components/schemas/PostAssociatesRequest" showReadOnly={true} showWriteOnly={true} />
-        Datenmodell für einen Response 
-        <SchemaDefinition schemaRef="#/components/schemas/PostAssociatesResponse" showReadOnly={true} showWriteOnly={true} />
-  - name: put_associate_models
-    x-displayName: Extend Associates
-    description: |
-        Datenmodell für einen Request
-        <SchemaDefinition schemaRef="#/components/schemas/PutAssociatesRequest" showReadOnly={true} showWriteOnly={true} />
-        Datenmodell für einen Response 
-        <SchemaDefinition schemaRef="#/components/schemas/PutAssociatesResponse" showReadOnly={true} showWriteOnly={true} />
+        
+        Datenmodell zum Ändern eines Verbunds
+        <SchemaDefinition schemaRef="#/components/schemas/PutAssociatesRequest" showReadOnly={true} showWriteOnly={true} />            
   - name: health_model
     x-displayName: Health
     description: |
-      <SchemaDefinition schemaRef="#/components/schemas/HealthOkResponse" showReadOnly={true} showWriteOnly={true} />
+       <SchemaDefinition schemaRef="#/components/schemas/HealthOkResponse" showReadOnly={true} showWriteOnly={true} />
        <SchemaDefinition schemaRef="#/components/schemas/HealthErrorResponse" showReadOnly={true} showWriteOnly={true} />
 x-tagGroups:
-  - name: Associate
+  - name: Verbünde
     tags:
       - associates
-  - name: Healthcheck
+  - name: Health-Check
     tags:
       - health
-  - name: Models
+  - name: Datenmodelle
     tags:
-      - post_associate_models
-      - put_associate_models
+      - associate_models
       - health_model
 security:
   - EsbAuthorization: []
     appId: []
 
 paths:
+  /associates/{associate_id}:
+    get:
+      operationId: getAssociateById
+      tags: [associates]
+      summary: Abrufen aller Personen eines Verbunds.
+      description: Alle Personen, die zu einem Verbund gehören, sind auszugeben.
+      parameters:
+        - name: associate_id
+          in: path
+          description: Verbund-ID Base64 encodiertes Timestamp.
+          required: true
+          schema:
+            $ref: '#/components/schemas/Associate_id'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetAssociateResponse'
+        '204':
+          description: Associate not found
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
   /associates:
     post:
       operationId: postAssociates
@@ -134,13 +160,20 @@ paths:
             application/vnd.api+json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-  /extendassociates:
+  /associates/{associate_id}:
     put:
       operationId: putAssociates
       tags: [associates]
       summary: Eine weitere Person soll in einen bestehenden Verbund aufgenommen werden.
       description: >-
         Eine Person ist mit ihrer Rolle dem Verbund zuzuordnen. DynS-Funktion: PERSONEN_ZU_VERBUND_HINZUF
+      parameters:
+        - name: associate_id
+          in: path
+          description: Verbund-ID Base64 encodiertes Timestamp.
+          required: true
+          schema:
+            $ref: '#/components/schemas/Associate_id'
       requestBody:
         required: true
         content:
@@ -188,6 +221,16 @@ paths:
                 status: "OUT_OF_SERVICE"
 components:
   schemas:
+# Personen zu Verbund lesen
+    GetAssociateResponse:
+      type: object
+      required:
+      - data
+      properties:
+        data:
+          $ref: '#/components/schemas/Associate'
+# Verbünde zu Person lesen:
+  
 # Verbund anlegen:   
     PostAssociatesRequest:
       type: object
@@ -205,16 +248,13 @@ components:
           $ref: '#/components/schemas/Associate'
     Associate:
       type: object
-      description: Verbund anlegen oder erweitern.
+      description: Verbund von Kunden.
       required:
       - type
       - attributes
       properties:
         id:
-          type: string
-          example: MDAwMS0wMS0wMS0wMC4wMC4wMC4wMDAwMDA
-          description: >-
-                Verbund_ID. Eindeutiger Schlüssel, Base64 encodierter ID-Timestamp des Verbundes.
+          $ref: '#/components/schemas/Associate_id'
         type:
           type: string
           description: Objekt Type
@@ -224,49 +264,28 @@ components:
         attributes:
           type: object
           required:
-          - associates
-          - roles
+          - customers
           properties:
-            associates:
-              type: array
-              minItems: 0
-              maxItems: 50
-              uniqueItems: true
-              items:
-                $ref: '#/components/schemas/CustomerId'
-              example: ['17', '630188']
-              description: >- 
-                Personen_NR die zu einem Verbund angelegt werden sollen.
-            roles:
-              type: array
-              minItems: 0
-              maxItems: 50
-              uniqueItems: true
-              items:
-                $ref: '#/components/schemas/Role'
-              example: ['ROLLE_1', 'ROLLE_2', 'ROLLE_3']
-              description: >- 
-                Eintrag in der Partnertabelle kennzeichnet 
-                  a) Rolle der Person i.S. DBGK oder 
-                  b) Existenz bestimmter Informations-Objekte (Anschrift, Statistikdaten etc.) in der Personen-DB.
-            role_type:
+            customers:
+              $ref: '#/components/schemas/Customers' 
+            associate_type:
               type: string
-              example: 'ROLLEN_TYP_1'
+              example: 'TYPE_1'
               description: >- 
                Verbundart. Zusammenfassung mehrerer Rollen. Eine Rolle kann nur einer Rollenart zugeordnet werden. 
                Die Verbundart wird über den Inputparameter ROLLENART festgelegt.
-            mark:
+            note:
               type: string
-              example: 'Merkmal_1'
+              example: 'note_text'
               description: >- 
                Lt. fachlicher Beschreibung des DynS-Prozesses kann ein Merkmal zu einer Verbundrolle über den optionalen 
                Parameter TEXT_PARTNER erfasst werden.
-            messageText:
+            message_text:
               type: string
               description: >- 
                 Meldungstext aus dem DynS-Prozess.
               example: 'MGK16340N010 - Der Prozess wurde erfolgreich ausgefuehrt.'
-    # Verbund erweitern:   
+# Verbund erweitern:   
     PutAssociatesRequest:
       type: object
       required:
@@ -281,6 +300,45 @@ components:
       properties:
         data:
           $ref: '#/components/schemas/Associate'
+# Hilfs-Modelle:
+    Customer:
+      description: Person/Kunde aus der Sicht eines Verbundes.
+      required:
+      - customer_id
+      - role
+      properties:
+        customer_id:
+          $ref: '#/components/schemas/CustomerId'
+        role:
+          type: string
+          maxLength: 12
+          description: >- 
+            ROLLE. Personen Rolleninformationen. Eintrag in der Partnertabelle kennzeichnet 
+              a) Rolle der Person i.S. DBGK oder 
+              b) Existenz bestimmter Informations-Objekte (Anschrift, Statistikdaten etc.) in der Personen-DB.
+    Customers:
+      description: Liste von Kunden die einen Verbund darstellen.
+      required:
+      - customers
+      properties:
+        customers:
+          type: array
+          minItems: 0
+          maxItems: 50
+          uniqueItems: true
+          items:
+            $ref: '#/components/schemas/Customer'
+          example:
+            - customer_id: 630188
+              role: GBR
+            - customer_id: 17
+              role: EIGENTÜMER
+    Associate_id:
+      type: string
+      description: >-
+        Verbund_ID. Eindeutige Identifizierung eines Verbundes. ID-Timestamp des Verbundes in Base64.
+      maxLength: 26
+      example: MTkyNi0wNC0xNC0xMi4yMy40MS4xMDc2MTc
     CustomerId:
       type: string
       description: >-
@@ -288,14 +346,6 @@ components:
       maxLength: 10
       pattern: '\d{1,10}'
       example: '630188'
-    Role:
-      description: Personen Rolleninformationen
-      required: 
-      - role
-      properties:
-        role: 
-          description: Rolle der Person.
-          type: string
     ErrorResponse:
       type: object
       properties:

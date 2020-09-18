@@ -331,14 +331,14 @@ components:
           required:
           - customers
           properties:
-            customers:
-              $ref: '#/components/schemas/Customers' 
             associate_type:
               type: string
               example: 'TYPE_1'
               description: >- 
                Verbundart. Zusammenfassung mehrerer Rollen. Eine Rolle kann nur einer Rollenart zugeordnet werden. 
                Die Verbundart wird über den Inputparameter ROLLENART festgelegt.
+            customers:
+              $ref: '#/components/schemas/Customers'
             note:
               type: string
               example: 'note_text'

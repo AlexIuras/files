@@ -103,41 +103,25 @@ security:
   - EsbAuthorization: []
     appId: []
 
-paths:
-  /associates/customers/{customer_id}:
-    get:
-      operationId: getAssociatesByCustomerId
-      tags: [associates]
-      summary: Abrufen aller Verbünde eines Kunden.
-      description: Alle Verbünde, in der eine Person eine Rolle hat, sind auszugeben.
-      parameters:
-        - name: customer_id
-          in: path
-          description: Personennummer.
-          required: true
-          schema:
-            $ref: '#/components/schemas/CustomerId'
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/GetAssociatesByCustIdResponse'
-        '204':
-          description: Customer not found
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
+paths:    
   /associates/{associate_id}:
     get:
       operationId: getAssociateById
       tags: [associates]
       summary: Abrufen aller Personen eines Verbunds.
-      description: Alle Personen, die zu einem Verbund gehören, sind auszugeben.
+      description: >- 
+        Alle Personen, die zu einem Verbund gehören, sind auszugeben. 
+        Fachliche Beschreibung:
+        Der Prozess stellt Informationen zu einem Personenverbund sowie den ihm 
+        angehörenden Personen zu einem bestimmten Zeitpunkt oder in einem bestimmten
+        Zeitraum zur Verfügung.
+        Die KWG-Verbünde werden über diesen Prozess nicht angezeigt.
+        Die Ergebnisse werden sortiert nach den Parametern
+        NAME, VORNAME, PERS_NR, VON und PARTNER_ZEILE.
+        Über den Parameter PERS_ART_ASWL kann die Menge der angezeigten Personen
+        auf Personen bestimmter PERS_Arten eingeschränkt oder erweitert werden.
+        Standard ist "PNJGA". Die Erweiterung betrifft die Personenarten "H"
+        und "I".
       parameters:
         - name: associate_id
           in: path
@@ -154,6 +138,10 @@ paths:
                 $ref: '#/components/schemas/GetAssociateResponse'
         '204':
           description: Associate not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '400':
           description: Bad Request
           content:
@@ -193,6 +181,37 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
   /associates:
+    get:
+      operationId: getAssociatesByCustomerId
+      tags: [associates]
+      summary: Abrufen aller Verbünde eines Kunden.
+      description: Alle Verbünde, in der eine Person eine Rolle hat, sind auszugeben.
+      parameters:
+        - name: customer_id
+          in: query
+          description: Personennummer.
+          required: true
+          schema:
+            $ref: '#/components/schemas/CustomerId'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetAssociatesByCustIdResponse'
+        '204':
+          description: Customer not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
     post:
       operationId: postAssociates
       tags: [associates]
@@ -255,14 +274,6 @@ components:
       properties:
         data:
           $ref: '#/components/schemas/Associates'
-        message_text:
-          $ref: '#/components/schemas/Message_text'
-        links:
-          type: object
-          properties:
-            self: 
-              type: string
-              example: 'http://api.bp.entw.bank.lbbw.sko.de/customer/associate-service/associates/customers/630188'
     Associates:
       description: Liste von Verbünden.
       required:
@@ -275,6 +286,8 @@ components:
           uniqueItems: true
           items:
             $ref: '#/components/schemas/Associate'
+        message_text:
+          $ref: '#/components/schemas/Message_text'
           #example:
           #  - customer_id: 630188
           #    role: GBR
@@ -288,14 +301,6 @@ components:
       properties:
         data:
           $ref: '#/components/schemas/Associate'
-        message_text:
-          $ref: '#/components/schemas/Message_text'
-        links:
-          type: object
-          properties:
-            self: 
-              type: string
-              example: 'http://api.bp.entw.bank.lbbw.sko.de/customer/associate-service/associates/MTkyNi0wNC0xNC0xMi4yMy40MS4xMDc2MTc'
 # Verbund anlegen:   
     PostAssociatesRequest:
       type: object
@@ -329,6 +334,7 @@ components:
         attributes:
           type: object
           required:
+          - associate_type
           - customers
           properties:
             associate_type:
@@ -339,13 +345,20 @@ components:
                Die Verbundart wird über den Inputparameter ROLLENART festgelegt.
             customers:
               $ref: '#/components/schemas/Customers'
-            note:
+            associate_note:
               type: string
               example: 'note_text'
               description: >- 
                TEXT_PARTNER. Lt. fachlicher Beschreibung des DynS-Prozesses kann ein Merkmal zu einer Verbundrolle über den optionalen 
                Parameter TEXT_PARTNER erfasst werden.
-
+        message_text:
+          $ref: '#/components/schemas/Message_text'
+        links:
+          type: object
+          properties:
+            self: 
+              type: string
+              example: 'http://api.bp.entw.bank.lbbw.sko.de/customer/associate-service/associates/MTkyNi0wNC0xNC0xMi4yMy40MS4xMDc2MTc'
 # Verbund erweitern:   
     PutAssociatesRequest:
       type: object
@@ -361,8 +374,6 @@ components:
       properties:
         data:
           $ref: '#/components/schemas/Associate'
-        message_text:
-          $ref: '#/components/schemas/Message_text'
 # Hilfs-Modelle:
     Associate_id:
       type: string
@@ -373,35 +384,36 @@ components:
     Customer:
       description: Person/Kunde aus der Sicht eines Verbundes.
       required:
-      - customer_id
+      - id
       - role
       properties:
-        customer_id:
+        id:
           $ref: '#/components/schemas/CustomerId'
         role:
           type: string
           maxLength: 12
           description: >- 
             ROLLE. Personen Rolleninformationen. Eintrag in der Partnertabelle kennzeichnet 
-              a) Rolle der Person i.S. DBGK oder 
-              b) Existenz bestimmter Informations-Objekte (Anschrift, Statistikdaten etc.) in der Personen-DB.
+            a) Rolle der Person i.S. DBGK oder 
+            b) Existenz bestimmter Informations-Objekte (Anschrift, Statistikdaten etc.) in der Personen-DB.
+        note:
+          type: string
+          example: 'note_text'
+          description: >- 
+            TEXT_PARTNER. Lt. fachlicher Beschreibung des DynS-Prozesses kann ein Merkmal zu einer Verbundrolle über den optionalen 
+            Parameter TEXT_PARTNER erfasst werden.
     Customers:
-      description: Liste von Kunden die einen Verbund darstellen.
-      required:
-      - customers
-      properties:
-        customers:
-          type: array
-          minItems: 0
-          maxItems: 50
-          uniqueItems: true
-          items:
-            $ref: '#/components/schemas/Customer'
-          example:
-            - customer_id: 630188
-              role: GBR
-            - customer_id: 17
-              role: EIGENTÜMER
+      type: array
+      minItems: 0
+      maxItems: 50
+      uniqueItems: true
+      items:
+        $ref: '#/components/schemas/Customer'
+      example:
+        - id: 630188
+          role: GBR
+        - id: 17
+          role: EIGENTÜMER
     CustomerId:
       type: string
       description: >-

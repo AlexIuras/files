@@ -105,6 +105,34 @@ security:
     appId: []
 
 paths:
+  /associates/customers/{customer_id}:
+    get:
+      operationId: getAssociatesByCustomerId
+      tags: [associates]
+      summary: Abrufen aller Verbünde eines Kunden.
+      description: Alle Verbünde, in der eine Person eine Rolle hat, sind auszugeben.
+      parameters:
+        - name: customer_id
+          in: path
+          description: Personennummer.
+          required: true
+          schema:
+            $ref: '#/components/schemas/CustomerId'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetAssociatesByCustIdResponse'
+        '204':
+          description: Customer not found
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
   /associates/{associate_id}:
     get:
       operationId: getAssociateById
@@ -133,34 +161,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-  /associates:
-    post:
-      operationId: postAssociates
-      tags: [associates]
-      summary: Ein neuer Verbund mit Personen wird angelegt, die neue Verbund-ID wird zurück gemeldet.
-      description: >-
-        Alle Personen, die zu einem Verbund gehören, sind mit ihrer Rolle dem Verbund zuzuordnen. 
-        DynS-Funktion: VERBUND_PERSONEN_ANLEGEN
-      requestBody:
-        required: true
-        content:
-          application/vnd.api+json:
-            schema:
-              $ref: '#/components/schemas/PostAssociatesRequest'
-      responses:
-        '201':
-          description: OK
-          content:
-            application/vnd.api+json:
-              schema:
-                $ref: '#/components/schemas/PostAssociatesResponse'
-        '400':
-          description: Bad Request
-          content:
-            application/vnd.api+json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-  /associates/{associate_id}:
     put:
       operationId: putAssociates
       tags: [associates]
@@ -187,6 +187,33 @@ paths:
             application/vnd.api+json:
               schema:
                 $ref: '#/components/schemas/PutAssociatesResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/vnd.api+json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /associates:
+    post:
+      operationId: postAssociates
+      tags: [associates]
+      summary: Ein neuer Verbund mit Personen wird angelegt, die neue Verbund-ID wird zurück gemeldet.
+      description: >-
+        Alle Personen, die zu einem Verbund gehören, sind mit ihrer Rolle dem Verbund zuzuordnen. 
+        DynS-Funktion: VERBUND_PERSONEN_ANLEGEN
+      requestBody:
+        required: true
+        content:
+          application/vnd.api+json:
+            schema:
+              $ref: '#/components/schemas/PostAssociatesRequest'
+      responses:
+        '201':
+          description: OK
+          content:
+            application/vnd.api+json:
+              schema:
+                $ref: '#/components/schemas/PostAssociatesResponse'
         '400':
           description: Bad Request
           content:
@@ -230,7 +257,30 @@ components:
         data:
           $ref: '#/components/schemas/Associate'
 # Verbünde zu Person lesen:
-  
+    GetAssociatesByCustIdResponse:
+      type: object
+      required:
+      - data
+      properties:
+        data:
+          $ref: '#/components/schemas/Associates'
+    Associates:
+      description: Liste von Verbünden.
+      required:
+      - associates
+      properties:
+        associates:
+          type: array
+          minItems: 0
+          maxItems: 50
+          uniqueItems: true
+          items:
+            $ref: '#/components/schemas/Associate'
+          #example:
+          #  - customer_id: 630188
+          #    role: GBR
+          #  - customer_id: 17
+          #    role: EIGENTÜMER
 # Verbund anlegen:   
     PostAssociatesRequest:
       type: object
@@ -285,6 +335,7 @@ components:
               description: >- 
                 Meldungstext aus dem DynS-Prozess.
               example: 'MGK16340N010 - Der Prozess wurde erfolgreich ausgefuehrt.'
+    
 # Verbund erweitern:   
     PutAssociatesRequest:
       type: object

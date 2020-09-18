@@ -343,14 +343,14 @@ components:
               description: >- 
                Verbundart. Zusammenfassung mehrerer Rollen. Eine Rolle kann nur einer Rollenart zugeordnet werden. 
                Die Verbundart wird über den Inputparameter ROLLENART festgelegt.
-            customers:
-              $ref: '#/components/schemas/Customers'
             associate_note:
               type: string
               example: 'note_text'
               description: >- 
                TEXT_PARTNER. Lt. fachlicher Beschreibung des DynS-Prozesses kann ein Merkmal zu einer Verbundrolle über den optionalen 
                Parameter TEXT_PARTNER erfasst werden.
+            customers:
+              $ref: '#/components/schemas/Customers'
         message_text:
           $ref: '#/components/schemas/Message_text'
         links:

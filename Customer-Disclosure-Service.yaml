@@ -248,14 +248,6 @@ paths:
                 status: "OUT_OF_SERVICE"
 components:
   schemas:
-# Personen zu Verbund lesen
-    GetAssociateResponse:
-      type: object
-      required:
-      - data
-      properties:
-        data:
-          $ref: '#/components/schemas/Associate'
 # Verbünde zu Person lesen:
     GetAssociatesByCustIdResponse:
       type: object
@@ -264,6 +256,14 @@ components:
       properties:
         data:
           $ref: '#/components/schemas/Associates'
+        message_text:
+          $ref: '#/components/schemas/Message_text'
+        links:
+          type: object
+          properties:
+            self: 
+              type: string
+              example: 'http://api.bp.entw.bank.lbbw.sko.de/customer/associate-service/associates/customers/630188'
     Associates:
       description: Liste von Verbünden.
       required:
@@ -281,6 +281,22 @@ components:
           #    role: GBR
           #  - customer_id: 17
           #    role: EIGENTÜMER
+# Personen zu Verbund lesen
+    GetAssociateResponse:
+      type: object
+      required:
+      - data
+      properties:
+        data:
+          $ref: '#/components/schemas/Associate'
+        message_text:
+          $ref: '#/components/schemas/Message_text'
+        links:
+          type: object
+          properties:
+            self: 
+              type: string
+              example: 'http://api.bp.entw.bank.lbbw.sko.de/customer/associate-service/associates/MTkyNi0wNC0xNC0xMi4yMy40MS4xMDc2MTc'
 # Verbund anlegen:   
     PostAssociatesRequest:
       type: object
@@ -328,14 +344,9 @@ components:
               type: string
               example: 'note_text'
               description: >- 
-               Lt. fachlicher Beschreibung des DynS-Prozesses kann ein Merkmal zu einer Verbundrolle über den optionalen 
+               TEXT_PARTNER. Lt. fachlicher Beschreibung des DynS-Prozesses kann ein Merkmal zu einer Verbundrolle über den optionalen 
                Parameter TEXT_PARTNER erfasst werden.
-            message_text:
-              type: string
-              description: >- 
-                Meldungstext aus dem DynS-Prozess.
-              example: 'MGK16340N010 - Der Prozess wurde erfolgreich ausgefuehrt.'
-    
+
 # Verbund erweitern:   
     PutAssociatesRequest:
       type: object
@@ -351,7 +362,15 @@ components:
       properties:
         data:
           $ref: '#/components/schemas/Associate'
+        message_text:
+          $ref: '#/components/schemas/Message_text'
 # Hilfs-Modelle:
+    Associate_id:
+      type: string
+      description: >-
+        Verbund_ID. Eindeutige Identifizierung eines Verbundes. ID-Timestamp des Verbundes in Base64.
+      maxLength: 26
+      example: MTkyNi0wNC0xNC0xMi4yMy40MS4xMDc2MTc
     Customer:
       description: Person/Kunde aus der Sicht eines Verbundes.
       required:
@@ -384,12 +403,6 @@ components:
               role: GBR
             - customer_id: 17
               role: EIGENTÜMER
-    Associate_id:
-      type: string
-      description: >-
-        Verbund_ID. Eindeutige Identifizierung eines Verbundes. ID-Timestamp des Verbundes in Base64.
-      maxLength: 26
-      example: MTkyNi0wNC0xNC0xMi4yMy40MS4xMDc2MTc
     CustomerId:
       type: string
       description: >-
@@ -397,6 +410,10 @@ components:
       maxLength: 10
       pattern: '\d{1,10}'
       example: '630188'
+    Message_text:
+      type: string
+      description: Meldungstext.
+      example: 'Noch weitere Daten vorhanden.'
     ErrorResponse:
       type: object
       properties:

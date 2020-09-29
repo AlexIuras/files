@@ -193,6 +193,13 @@ paths:
           required: true
           schema:
             $ref: '#/components/schemas/CustomerId'
+        - name: show_only_association_leader
+          in: query
+          description: >- 
+            Ausgelesen wird nur das Verbund indem die Person nach der Rechtsform der Person diese der Verbundführer ist, alle Verbundmitglieder werden auch angezeigt.
+          required: true
+          schema:
+            $ref: '#/components/schemas/Boolean_param'
       responses:
         '200':
           description: OK
@@ -266,6 +273,14 @@ paths:
                 status: "OUT_OF_SERVICE"
 components:
   schemas:
+# Personen zu Verbund lesen
+    GetAssociateResponse:
+      type: object
+      required:
+      - data
+      properties:
+        data:
+          $ref: '#/components/schemas/Associate'
 # Verbünde zu Person lesen:
     GetAssociatesByCustIdResponse:
       type: object
@@ -282,7 +297,7 @@ components:
         associates:
           type: array
           minItems: 0
-          maxItems: 50
+          maxItems: 100
           uniqueItems: true
           items:
             $ref: '#/components/schemas/Associate'
@@ -293,14 +308,6 @@ components:
           #    role: GBR
           #  - customer_id: 17
           #    role: EIGENTÜMER
-# Personen zu Verbund lesen
-    GetAssociateResponse:
-      type: object
-      required:
-      - data
-      properties:
-        data:
-          $ref: '#/components/schemas/Associate'
 # Verbund anlegen:   
     PostAssociatesRequest:
       type: object
@@ -337,13 +344,20 @@ components:
           - associate_type
           - customers
           properties:
-            associate_type:
+            type:
               type: string
               example: 'TYPE_1'
               description: >- 
                Verbundart. Zusammenfassung mehrerer Rollen. Eine Rolle kann nur einer Rollenart zugeordnet werden. 
                Die Verbundart wird über den Inputparameter ROLLENART festgelegt.
-            associate_note:
+            role:
+              type: string
+              maxLength: 12
+              description: >- 
+                ROLLE. Eintrag in der Partnertabelle kennzeichnet 
+                a) Rolle der Person i.S. DBGK oder 
+                b) Existenz bestimmter Informations-Objekte (Anschrift, Statistikdaten etc.) in der Personen-DB.
+            note:
               type: string
               example: 'note_text'
               description: >- 
@@ -432,6 +446,11 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/JsonApiError'
+    Boolean_param:
+        type: boolean
+        example: false
+        description: >-
+            Nur das Rechtsformverbund der Person soll angezeigt werden.
     JsonApiError:
       type: object
       properties:

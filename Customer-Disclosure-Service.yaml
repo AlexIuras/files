@@ -80,10 +80,10 @@ tags:
         <SchemaDefinition schemaRef="#/components/schemas/Association" showReadOnly={true} showWriteOnly={true} />
         
         Datenmodell zum Erstellen eines Verbunds
-        <SchemaDefinition schemaRef="#/components/schemas/PostAssociationsRequest" showReadOnly={true} showWriteOnly={true} />
+        <SchemaDefinition schemaRef="#/components/schemas/CreateAssociationRequest" showReadOnly={true} showWriteOnly={true} />
         
         Datenmodell zum Ändern eines Verbunds
-        <SchemaDefinition schemaRef="#/components/schemas/AddCustomerRequest" showReadOnly={true} showWriteOnly={true} />            
+        <SchemaDefinition schemaRef="#/components/schemas/UpdateAssociationRequest" showReadOnly={true} showWriteOnly={true} />            
   - name: health_model
     x-displayName: Health
     description: |
@@ -150,7 +150,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
     put:
-      operationId: updateCustomersInAssociation
+      operationId: updateAssociation
       tags: [associations]
       summary: Eine weitere Person soll in einen bestehenden Verbund aufgenommen oder daraus entfernt werden.
       description: >-
@@ -183,14 +183,14 @@ paths:
         content:
           application/vnd.api+json:
             schema:
-              $ref: '#/components/schemas/UpdateCustomersRequest'
+              $ref: '#/components/schemas/UpdateAssociationRequest'
       responses:
         '200':
           description: OK
           content:
             application/vnd.api+json:
               schema:
-                $ref: '#/components/schemas/UpdateCustomersResponse'
+                $ref: '#/components/schemas/UpdateAssociationResponse'
         '400':
           description: Bad Request
           content:
@@ -255,7 +255,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
     post:
-      operationId: postAssociations
+      operationId: createAssociation
       tags: [associations]
       summary: Ein neuer Verbund mit Personen wird angelegt, die neue Verbund-ID wird zurück gemeldet.
       description: >-
@@ -266,14 +266,14 @@ paths:
         content:
           application/vnd.api+json:
             schema:
-              $ref: '#/components/schemas/PostAssociationsRequest'
+              $ref: '#/components/schemas/CreateAssociationRequest'
       responses:
         '201':
           description: OK
           content:
             application/vnd.api+json:
               schema:
-                $ref: '#/components/schemas/PostAssociationsResponse'
+                $ref: '#/components/schemas/CreateAssociationResponse'
         '400':
           description: Bad Request
           content:
@@ -344,14 +344,14 @@ components:
           #  - customer_id: 17
           #    role: EIGENTÜMER
 # Verbund anlegen:   
-    PostAssociationsRequest:
+    CreateAssociationRequest:
       type: object
       required:
       - data
       properties:
         data:
           $ref: '#/components/schemas/Association'
-    PostAssociationsResponse:
+    CreateAssociationResponse:
       type: object
       required:
       - data
@@ -409,14 +409,14 @@ components:
               type: string
               example: 'http://api.bp.entw.bank.lbbw.sko.de/customer/association-service/associations/MTkyNi0wNC0xNC0xMi4yMy40MS4xMDc2MTc'
 # Verbund erweitern/verkleinern:   
-    UpdateCustomersRequest:
+    UpdateAssociationRequest:
       type: object
       required:
       - data
       properties:
         data:
           $ref: '#/components/schemas/Association'
-    UpdateCustomersResponse:
+    UpdateAssociationResponse:
       type: object
       required:
       - data

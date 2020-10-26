@@ -45,11 +45,12 @@ info:
     # Release-Notes
       - 2020-09-09 v0.0.1  Erster Entwurf der Operationen und Modellen.
       - 2020-09-17 v0.0.2  Anpassungen nach dem ersten technischen Review.
-      - 2020-10-12 v1.0.0  Verbund löschen und Person aus Verbund löschen aúfgenommen.
+      - 2020-10-12 v1.0.0  Verbund löschen und Person aus Verbund löschen aufgenommen.
+      - 2020-10-26 v1.0.0  Umstrukturierung der Operationen Kunde aus Verbund löschen bzw. ins Verbund aufnehmen.
 
     # Status
     
-        Version v1.0.0 2020-10-12  Verbund löschen und Person aus Verbund löschen aúfgenommen.
+        Version v1.0.0 2020-10-26  Umstrukturierung der Operationen Kunde aus Verbund löschen bzw. ins Verbund aufnehmen.
   version: v1.0.0
   termsOfService: /agb
   contact:
@@ -60,7 +61,7 @@ info:
     name: Apache 2.0
     url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
   x-keywords: >-
-    Verbund, Verbunde, Verbünde, Verbundmerkmale, Person, Personen, KYC, Konto, Konten
+    Verbund, Verbunde, Verbünde, Verbundmerkmale, Person, Personen, KYC
   x-logo:
     altText: OSPlus logo
     url: 'assets/img/osplus.png'
@@ -105,6 +106,72 @@ security:
     appId: []
 
 paths:    
+  /associations:
+    get:
+      operationId: getAssociationsByCustomerId
+      tags: [associations]
+      summary: Abrufen aller Verbünde eines Kunden.
+      description: >-
+        Alle Verbünde, in der eine Person eine Rolle hat, sind auszugeben. Wenn show_only_legal_form_association true dann nur Rechstformverbund wird angezeigt.
+      parameters:
+        - name: customer_id
+          in: query
+          description: Personennummer.
+          required: true
+          schema:
+            $ref: '#/components/schemas/CustomerId'
+        - name: show_only_legal_form_association
+          in: query
+          description: >- 
+            Ausgelesen wird nur das Verbund indem die Person nach der Rechtsform der Person diese der Verbundführer ist, alle Verbundmitglieder werden auch angezeigt.
+          required: true
+          schema:
+            $ref: '#/components/schemas/Boolean_param'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/vnd.api+json:
+              schema:
+                $ref: '#/components/schemas/GetAssociationsByCustIdResponse'
+        '204':
+          description: Customer not found
+          content:
+            application/vnd.api+json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/vnd.api+json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    post:
+      operationId: createAssociation
+      tags: [associations]
+      summary: Ein neuer Verbund mit Personen wird angelegt, die neue Verbund-ID wird zurück gemeldet.
+      description: >-
+        Alle Personen, die zu einem Verbund gehören, sind mit ihrer Rolle dem Verbund zuzuordnen. 
+        DynS-Funktion: VERBUND_PERSONEN_ANLEGEN
+      requestBody:
+        required: true
+        content:
+          application/vnd.api+json:
+            schema:
+              $ref: '#/components/schemas/CreateAssociationRequest'
+      responses:
+        '201':
+          description: OK
+          content:
+            application/vnd.api+json:
+              schema:
+                $ref: '#/components/schemas/CreateAssociationResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/vnd.api+json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
   /associations/{association_id}:
     get:
       operationId: getAssociationById
@@ -134,63 +201,15 @@ paths:
         '200':
           description: OK
           content:
-            application/json:
+            application/vnd.api+json:
               schema:
                 $ref: '#/components/schemas/GetAssociationResponse'
         '204':
           description: Association not found
           content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-    put:
-      operationId: updateAssociation
-      tags: [associations]
-      summary: Eine weitere Person soll in einen bestehenden Verbund aufgenommen oder daraus entfernt werden.
-      description: >-
-        Eine Person ist mit ihrer Rolle dem Verbund zuzuordnen oder aus dem Verbund zu entfernen. 
-        DynS-Funktion: PERSONEN_ZU_VERBUND_HINZUF oder PERSONEN_AUS_VERBUND_LOESCHEN.
-      parameters:
-        - name: association_id
-          in: path
-          description: >-
-            Verbund-ID Base64 encodiertes Timestamp.
-          required: true
-          schema:
-            $ref: '#/components/schemas/Association_id'
-        - name: customer_id
-          in: query
-          description: >-
-            Personennummer notwendig wenn eine Person entfernt werden soll.
-          required: false
-          schema:
-            $ref: '#/components/schemas/CustomerId'
-        - name: remove_customer_from_association
-          in: query
-          description: >- 
-            Wenn das Person aus dem Verbund entfernt werden soll -> dann true.
-          required: false
-          schema:
-            $ref: '#/components/schemas/Boolean_param'
-      requestBody:
-        required: true
-        content:
-          application/vnd.api+json:
-            schema:
-              $ref: '#/components/schemas/UpdateAssociationRequest'
-      responses:
-        '200':
-          description: OK
-          content:
             application/vnd.api+json:
               schema:
-                $ref: '#/components/schemas/UpdateAssociationResponse'
+                $ref: '#/components/schemas/ErrorResponse'
         '400':
           description: Bad Request
           content:
@@ -214,72 +233,74 @@ paths:
         '204':
           description: No Content
           content: {}
-  /associations:
-    get:
-      operationId: getAssociationsByCustomerId
-      tags: [associations]
-      summary: Abrufen aller Verbünde eines Kunden.
-      description: >-
-        Alle Verbünde, in der eine Person eine Rolle hat, sind auszugeben. Wenn show_only_legal_form_association true dann nur Rechstformverbund wird angezeigt.
-      parameters:
-        - name: customer_id
-          in: query
-          description: Personennummer.
-          required: true
-          schema:
-            $ref: '#/components/schemas/CustomerId'
-        - name: show_only_legal_form_association
-          in: query
-          description: >- 
-            Ausgelesen wird nur das Verbund indem die Person nach der Rechtsform der Person diese der Verbundführer ist, alle Verbundmitglieder werden auch angezeigt.
-          required: true
-          schema:
-            $ref: '#/components/schemas/Boolean_param'
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/GetAssociationsByCustIdResponse'
-        '204':
-          description: Customer not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
+  /associations/{association_id}/customers:
     post:
-      operationId: createAssociation
+      operationId: addCustomerToAssociation
       tags: [associations]
-      summary: Ein neuer Verbund mit Personen wird angelegt, die neue Verbund-ID wird zurück gemeldet.
+      summary: Eine weitere Person soll in einen bestehenden Verbund aufgenommen.
       description: >-
-        Alle Personen, die zu einem Verbund gehören, sind mit ihrer Rolle dem Verbund zuzuordnen. 
-        DynS-Funktion: VERBUND_PERSONEN_ANLEGEN
+        Eine Person ist mit ihrer Rolle dem Verbund zuzuordnen. 
+        DynS-Funktion: PERSONEN_ZU_VERBUND_HINZUF
+      parameters:
+        - name: association_id
+          in: path
+          description: >-
+            Verbund-ID Base64 encodiertes Timestamp.
+          required: true
+          schema:
+            $ref: '#/components/schemas/Association_id'
       requestBody:
         required: true
         content:
           application/vnd.api+json:
             schema:
-              $ref: '#/components/schemas/CreateAssociationRequest'
+              $ref: '#/components/schemas/UpdateAssociationRequest'
       responses:
-        '201':
+        '200':
           description: OK
           content:
             application/vnd.api+json:
               schema:
-                $ref: '#/components/schemas/CreateAssociationResponse'
+                $ref: '#/components/schemas/UpdateAssociationResponse'
         '400':
           description: Bad Request
           content:
             application/vnd.api+json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+  /associations/{association_id}/customers/{customer_id}:
+    delete:
+      operationId: deleteCustomerFromAssociation
+      tags: [associations]
+      summary: Ein Kunde in einer bestimmten Rolle soll aus dem Verbund entfernt werden.
+      description: >-
+        Eine Person ist mit ihrer Rolle aus dem Verbund zu entfernen. 
+        DynS-Funktion: VERBUND_PERSONEN_LOESCHEN.
+      parameters:
+        - name: association_id
+          in: path
+          description: Verbund-ID Base64 encodiertes Timestamp.
+          required: true
+          schema:
+            $ref: '#/components/schemas/Association_id'
+        - name: customer_id
+          in: path
+          description: >- 
+            Die Kundennummer die aus dem Verbund entfernt werden soll.
+          required: true
+          schema:
+            $ref: '#/components/schemas/CustomerId'
+        - name: customer_role
+          in: query
+          description: >- 
+            Die Kundenrolle die aus dem Verbund entfernt werden soll.
+          required: true
+          schema:
+            $ref: '#/components/schemas/Role'
+      responses:
+        '204':
+          description: No Content
+          content: {}
   /health:
     get:
       security: []
@@ -470,6 +491,14 @@ components:
       maxLength: 10
       pattern: '\d{1,10}'
       example: '630188'
+    Role:
+      type: string
+      maxLength: 12
+      example: 'EIGENTÜMER'
+      description: >- 
+        ROLLE. Personen Rolleninformationen. Eintrag in der Partnertabelle kennzeichnet 
+          -  a) Rolle der Person i.S. DBGK oder 
+          -  b) Existenz bestimmter Informations-Objekte (Anschrift, Statistikdaten etc.) in der Personen-DB.
     Message_text:
       type: string
       description: Meldungstext.

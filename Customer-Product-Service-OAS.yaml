@@ -50,8 +50,8 @@ info:
 
     # Status
     
-        Version v1.0.0 2020-10-26  Umstrukturierung der Operationen Kunde aus Verbund löschen bzw. ins Verbund aufnehmen.
-  version: v1.0.0
+        Version v1.0.0 2020-11-19  Überarbeitung nach technischem Review.
+  version: 1.0.0
   termsOfService: /agb
   contact:
     name: Nicholas Trawniczek
@@ -120,7 +120,7 @@ paths:
           required: true
           schema:
             $ref: '#/components/schemas/CustomerId'
-        - name: show_only_legal_form_association
+        - name: legal_form_only
           in: query
           description: >- 
             Ausgelesen wird nur das Verbund indem die Person nach der Rechtsform der Person diese der Verbundführer ist, alle Verbundmitglieder werden auch angezeigt.
@@ -134,8 +134,8 @@ paths:
             application/vnd.api+json:
               schema:
                 $ref: '#/components/schemas/GetAssociationsByCustIdResponse'
-        '204':
-          description: Customer not found
+        '404':
+          description: Not Found
           content:
             application/vnd.api+json:
               schema:
@@ -204,12 +204,6 @@ paths:
             application/vnd.api+json:
               schema:
                 $ref: '#/components/schemas/GetAssociationResponse'
-        '204':
-          description: Association not found
-          content:
-            application/vnd.api+json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
         '400':
           description: Bad Request
           content:
@@ -233,11 +227,11 @@ paths:
         '204':
           description: No Content
           content: {}
-  /associations/{association_id}/customers:
+  /associations/{association_id}/associates:
     post:
-      operationId: addCustomerToAssociation
+      operationId: addAssociateToAssociation
       tags: [associations]
-      summary: Eine weitere Person soll in einen bestehenden Verbund aufgenommen.
+      summary: Eine weiterer Verbündeter soll in einen bestehenden Verbund aufgenommen.
       description: >-
         Eine Person ist mit ihrer Rolle dem Verbund zuzuordnen. 
         DynS-Funktion: PERSONEN_ZU_VERBUND_HINZUF
@@ -256,7 +250,7 @@ paths:
             schema:
               $ref: '#/components/schemas/UpdateAssociationRequest'
       responses:
-        '200':
+        '201':
           description: OK
           content:
             application/vnd.api+json:
@@ -268,11 +262,11 @@ paths:
             application/vnd.api+json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-  /associations/{association_id}/customers/{customer_id}:
+  /associations/{association_id}/associates/{associate_id}:
     delete:
-      operationId: deleteCustomerFromAssociation
+      operationId: deleteAssociateFromAssociation
       tags: [associations]
-      summary: Ein Kunde in einer bestimmten Rolle soll aus dem Verbund entfernt werden.
+      summary: Ein Verbündeter in einer bestimmten Rolle soll aus dem Verbund entfernt werden.
       description: >-
         Eine Person ist mit ihrer Rolle aus dem Verbund zu entfernen. 
         DynS-Funktion: VERBUND_PERSONEN_LOESCHEN.
@@ -283,20 +277,13 @@ paths:
           required: true
           schema:
             $ref: '#/components/schemas/Association_id'
-        - name: customer_id
+        - name: associate_id
           in: path
           description: >- 
-            Die Kundennummer die aus dem Verbund entfernt werden soll.
+            Die Verbündeten-Nr die aus dem Verbund entfernt werden soll.
           required: true
           schema:
-            $ref: '#/components/schemas/CustomerId'
-        - name: customer_role
-          in: query
-          description: >- 
-            Die Kundenrolle die aus dem Verbund entfernt werden soll.
-          required: true
-          schema:
-            $ref: '#/components/schemas/Role'
+            $ref: '#/components/schemas/Associate_id'
       responses:
         '204':
           description: No Content
@@ -329,23 +316,80 @@ paths:
                 status: "OUT_OF_SERVICE"
 components:
   schemas:
-# Personen zu Verbund lesen
-    GetAssociationResponse:
+    Association:
       type: object
+      description: Verbund von Partnern.
       required:
-      - data
+      - type
+      - attributes
       properties:
-        data:
-          $ref: '#/components/schemas/Association'
-# Verbünde zu Person lesen:
-    GetAssociationsByCustIdResponse:
+        id:
+          $ref: '#/components/schemas/Association_id'
+        type:
+          type: string
+          description: Objekt Type
+          example: associations
+          enum: [associations]
+        attributes:
+          required:
+          - association_type
+          - associates
+          properties:
+            association_type:
+              type: string
+              example: 'GMBH'
+              description: >- 
+               Verbundart. Zusammenfassung mehrerer Rollen. Eine Rolle kann nur einer Rollenart zugeordnet werden. 
+               Die Verbundart wird über den Inputparameter ROLLENART festgelegt.
+            associates:
+              $ref: '#/components/schemas/Associates'
+            #customers:
+              #$ref: '#/components/schemas/Customers'
+        message_text:
+          $ref: '#/components/schemas/Message_text'
+        links:
+          type: object
+          properties:
+            self: 
+              type: string
+              example: 'http://api.bp.entw.bank.lbbw.sko.de/customer/association-service/associations/MTkyNi0wNC0xNC0xMi4yMy40MS4xMDc2MTc'
+    Associate:
       type: object
+      description: Ein einzelner Verbund-Partner
       required:
-      - data
+      - type
+      - attributes
       properties:
-        data:
-          $ref: '#/components/schemas/Associations'
-    Associations:
+        id:
+          $ref: '#/components/schemas/Associate_id'
+        type:
+          type: string
+          description: Objekt Type
+          example: associates
+          enum: [associates]
+        attributes:
+          required:
+          - customer_id
+          - role
+          properties:
+            customer_id:
+              $ref: '#/components/schemas/CustomerId'
+            role:
+              type: string
+              maxLength: 12
+              example: 'GMBH-GESELL'
+              description: >- 
+                ROLLE. Eintrag in der Partnertabelle kennzeichnet 
+                  - a) Rolle der Person i.S. DBGK oder 
+                  - b) Existenz bestimmter Informations-Objekte (Anschrift, Statistikdaten etc.) in der Personen-DB.
+            note:
+              type: string
+              example: 'note_text'
+              description: >- 
+                TEXT_PARTNER. Lt. fachlicher Beschreibung des DynS-Prozesses kann ein Merkmal zu einer Verbundrolle über den optionalen 
+                Parameter TEXT_PARTNER erfasst werden.
+# Listen-Modelle:
+    Associations: # Liste mit Verbünden
       description: Liste von Verbünden.
       required:
       - associations
@@ -364,6 +408,40 @@ components:
           #    role: GBR
           #  - customer_id: 17
           #    role: EIGENTÜMER
+    Associates: # Liste mit Verbund-Partnern
+      description: Liste von Verbund-Partnern.
+      type: array
+      minItems: 0
+      maxItems: 50
+      uniqueItems: true
+      items:
+        $ref: '#/components/schemas/Associate'
+      example:
+        - id: PTkyNi0wNC0xNC0xMi4yMy40MS4xMDc2MTe
+          customer_id: 630188
+          role: GBR
+          note: NOTE
+        - id: NTkyNi0wNC0xNC0xMi4yMy40MS4xMDc2MTc
+          customer_id: 17
+          role: EIGENTÜMER
+          note: NOTE
+    # Response / Requests
+    # Personen zu Verbund lesen
+    GetAssociationResponse:
+      type: object
+      required:
+      - data
+      properties:
+        data:
+          $ref: '#/components/schemas/Association'
+# Verbünde zu Person lesen:
+    GetAssociationsByCustIdResponse:
+      type: object
+      required:
+      - data
+      properties:
+        data:
+          $ref: '#/components/schemas/Associations'
 # Verbund anlegen:   
     CreateAssociationRequest:
       type: object
@@ -379,111 +457,21 @@ components:
       properties:
         data:
           $ref: '#/components/schemas/Association'
-    Association:
-      type: object
-      description: Verbund von Kunden.
-      required:
-      - type
-      - attributes
-      properties:
-        id:
-          $ref: '#/components/schemas/Association_id'
-        type:
-          type: string
-          description: Objekt Type
-          example: associations
-          enum:
-            - associations
-        attributes:
-          type: object
-          required:
-          - association_type
-          - customers
-          properties:
-            type:
-              type: string
-              example: 'TYPE_1'
-              description: >- 
-               Verbundart. Zusammenfassung mehrerer Rollen. Eine Rolle kann nur einer Rollenart zugeordnet werden. 
-               Die Verbundart wird über den Inputparameter ROLLENART festgelegt.
-            role:
-              type: string
-              maxLength: 12
-              description: >- 
-                ROLLE. Eintrag in der Partnertabelle kennzeichnet 
-                a) Rolle der Person i.S. DBGK oder 
-                b) Existenz bestimmter Informations-Objekte (Anschrift, Statistikdaten etc.) in der Personen-DB.
-            note:
-              type: string
-              example: 'note_text'
-              description: >- 
-               TEXT_PARTNER. Lt. fachlicher Beschreibung des DynS-Prozesses kann ein Merkmal zu einer Verbundrolle über den optionalen 
-               Parameter TEXT_PARTNER erfasst werden.
-            customers:
-              $ref: '#/components/schemas/Customers'
-        message_text:
-          $ref: '#/components/schemas/Message_text'
-        links:
-          type: object
-          properties:
-            self: 
-              type: string
-              example: 'http://api.bp.entw.bank.lbbw.sko.de/customer/association-service/associations/MTkyNi0wNC0xNC0xMi4yMy40MS4xMDc2MTc'
-# Verbund erweitern/verkleinern:   
+    # Verbund erweitern/verkleinern:   
     UpdateAssociationRequest:
       type: object
       required:
       - data
       properties:
         data:
-          $ref: '#/components/schemas/Association'
+          $ref: '#/components/schemas/Associate'
     UpdateAssociationResponse:
       type: object
       required:
       - data
       properties:
         data:
-          $ref: '#/components/schemas/Association'
-# Hilfs-Modelle:
-    Association_id:
-      type: string
-      description: >-
-        Verbund_ID. Eindeutige Identifizierung eines Verbundes. ID-Timestamp des Verbundes in Base64.
-      maxLength: 26
-      example: MTkyNi0wNC0xNC0xMi4yMy40MS4xMDc2MTc
-    Customer:
-      description: Person/Kunde aus der Sicht eines Verbundes.
-      required:
-      - id
-      - role
-      properties:
-        id:
-          $ref: '#/components/schemas/CustomerId'
-        role:
-          type: string
-          maxLength: 12
-          description: >- 
-            ROLLE. Personen Rolleninformationen. Eintrag in der Partnertabelle kennzeichnet 
-            a) Rolle der Person i.S. DBGK oder 
-            b) Existenz bestimmter Informations-Objekte (Anschrift, Statistikdaten etc.) in der Personen-DB.
-        note:
-          type: string
-          example: 'note_text'
-          description: >- 
-            TEXT_PARTNER. Lt. fachlicher Beschreibung des DynS-Prozesses kann ein Merkmal zu einer Verbundrolle über den optionalen 
-            Parameter TEXT_PARTNER erfasst werden.
-    Customers:
-      type: array
-      minItems: 0
-      maxItems: 50
-      uniqueItems: true
-      items:
-        $ref: '#/components/schemas/Customer'
-      example:
-        - id: 630188
-          role: GBR
-        - id: 17
-          role: EIGENTÜMER
+          $ref: '#/components/schemas/Associate'
     CustomerId:
       type: string
       description: >-
@@ -491,14 +479,18 @@ components:
       maxLength: 10
       pattern: '\d{1,10}'
       example: '630188'
-    Role:
+    Association_id:
       type: string
-      maxLength: 12
-      example: 'EIGENTÜMER'
-      description: >- 
-        ROLLE. Personen Rolleninformationen. Eintrag in der Partnertabelle kennzeichnet 
-          -  a) Rolle der Person i.S. DBGK oder 
-          -  b) Existenz bestimmter Informations-Objekte (Anschrift, Statistikdaten etc.) in der Personen-DB.
+      description: >-
+        Verbund_ID. Eindeutige Identifizierung eines Verbundes. ID-Timestamp des Verbundes in Base64.
+      maxLength: 26
+      example: MTkyNi0wNC0xNC0xMi4yMy40MS4xMDc2MTc
+    Associate_id:
+      type: string
+      description: >-
+        Verbund-Partner_ID. Eindeutige Identifizierung einer Verbund-Partner. ID-Timestamp des Verbund-Partners in Base64.
+      maxLength: 26
+      example: MTQ5OC0xMS0xMy0xMy4wNS41My42MDMzMjA
     Message_text:
       type: string
       description: Meldungstext.
